@@ -1,18 +1,16 @@
-// Import necessary modules
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-// Define the OTP schema
-const  BankUserSchema = new mongoose.Schema(
+const BankUserSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true  },
-    mobile: { type: String ,required: true },
-    userType: { type: string,required: true },
-    reportingTo: { type: string,required: true },
+    name: { type: String, required: true },
+    mobile: { type: String, required: true },
+    user_type: { type: string, required: true },
+    reporting_to: { type: string, required: true },
   },
   {
     timestamps: true,
   }
 );
 
-const BankUserModal = mongoose.model('User', BankUserSchema);
-module.exports = {  BankUserModal };
+const BankUserModal = mongoose.model("BankUser", BankUserSchema);
+module.exports = { BankUserModal };

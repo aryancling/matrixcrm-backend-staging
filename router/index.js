@@ -1,18 +1,31 @@
-const router = require('express').Router();
+const router = require("express").Router();
 
-const otpRoutes = require('../src/modules/otp/otp-routes');
-const UserRoutes = require('../src/modules/user/user-route')
+const otpRoutes = require("../src/modules/otp/otp-routes");
+const UserRoutes = require("../src/modules/user/user-route");
+const RoleRoutes = require("../src/modules/role/role-routes");
+const CategoryRoutes = require("../src/modules/category/category-routes");
 
 const moduleRoutes = [
   {
-    path: '/otp',
+    path: "/otp",
     route: otpRoutes,
   },
   {
-    path: '/user',
+    path: "/user",
     route: UserRoutes,
   },
-  
+  {
+    path: "/role",
+    route: RoleRoutes,
+  },
+  {
+    path: "/rc",
+    route: RcRoutes,
+  },
+  {
+    path: "/category",
+    route: CategoryRoutes,
+  },
 ];
 
 moduleRoutes.forEach((route) => {
