@@ -1,7 +1,6 @@
 // Import necessary modules
 const mongoose = require('mongoose');
-const otplib = require('otplib');
-const twilio = require('twilio');
+
 require('dotenv').config();
 
 // Define the OTP schema

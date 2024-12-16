@@ -1,12 +1,16 @@
 const router = require('express').Router();
 
-const otpRoutes = require('../src/modules/otp/otpRoutes');
-
+const otpRoutes = require('../src/modules/otp/otp-routes');
+const UserRoutes = require('../src/modules/user/user-route')
 
 const moduleRoutes = [
   {
     path: '/otp',
     route: otpRoutes,
+  },
+  {
+    path: '/user',
+    route: UserRoutes,
   },
   
 ];

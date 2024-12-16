@@ -4,7 +4,7 @@ const router = express.Router();
 const {
   sendOtp,
   verifyOtp,
-} = require('./otpControlller');
+} = require('./otp-controlller');
 
 router.post('/send-otp', sendOtp);
 router.post('/verify-otp', verifyOtp);

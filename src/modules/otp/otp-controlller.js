@@ -1,6 +1,6 @@
 const otplib = require('otplib');
 const twilio = require('twilio');
-const {OtpModel} = require('./otpModal')
+const {OtpModel} = require('./otp-modal')
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const senderPhone = process.env.TWILIO_PHONE_NUMBER;
 
@@ -18,7 +18,7 @@ const sendOtp = async (req, res) => {
 
     if (otpRecord) {
       if (new Date() > otpRecord.otpExpires) {
-        await otpRecord.remove();
+        await otpRecord.deleteOne(); 
       } else {
         return res
           .status(400)
@@ -45,7 +45,7 @@ const sendOtp = async (req, res) => {
       data: { phoneNumber },
     });
   } catch (error) {
-   
+   console.log(error)
     res
       .status(500)
       .json({ message: 'Failed to send OTP. Please try again later.' });
