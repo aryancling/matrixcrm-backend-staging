@@ -4,8 +4,8 @@ const BankUserSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     mobile: { type: String, required: true },
-    user_type: { type: string, required: true },
-    reporting_to: { type: string, required: true },
+    user_type: { type: String, required: true },
+    reporting_to: { type: String, required: true },
   },
   {
     timestamps: true,
