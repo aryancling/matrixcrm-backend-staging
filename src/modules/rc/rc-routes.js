@@ -5,7 +5,6 @@ const {
   getRcById,
   updateRc,
   deleteRc,
-  createRc,
 } = require("./rc-controller");
 const router = express.Router();
 
