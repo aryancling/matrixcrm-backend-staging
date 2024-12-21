@@ -3,7 +3,9 @@ const router = require("express").Router();
 const otpRoutes = require("../src/modules/otp/otp-routes");
 const UserRoutes = require("../src/modules/user/user-route");
 const RoleRoutes = require("../src/modules/role/role-routes");
+const RcRoutes = require("../src/modules/rc/rc-routes");
 const CategoryRoutes = require("../src/modules/category/category-routes");
+const BankUserRoutes = require("../src/modules/bank-user/bankUser-routes");
 
 const moduleRoutes = [
   {
@@ -13,6 +15,10 @@ const moduleRoutes = [
   {
     path: "/user",
     route: UserRoutes,
+  },
+  {
+    path: "/Bankuser",
+    route: BankUserRoutes,
   },
   {
     path: "/role",

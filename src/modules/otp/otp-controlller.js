@@ -1,7 +1,11 @@
-const otplib = require('otplib');
-const twilio = require('twilio');
-const {OtpModel} = require('./otp-modal')
-const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+const otplib = require("otplib");
+const twilio = require("twilio");
+const { OtpModel } = require("./otp-modal");
+const {BankUserModal} = require('../bank-user/bankUser-modal')
+const client = twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
 const senderPhone = process.env.TWILIO_PHONE_NUMBER;
 
 // Send OTP to mobile number
@@ -9,6 +13,15 @@ const sendOtp = async (req, res) => {
   const { phoneNumber } = req.body;
 
   try {
+    // Check if the phone number exists in the BankUser collection
+    const user = await BankUserModal.findOne({ mobile: phoneNumber });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ error: "Phone number is not registered with any bank user" });
+    }
+
     otplib.authenticator.options = { digits: 6 };
     const otp = otplib.authenticator.generate(process.env.OTP_SECRET);
     const otpExpires = new Date();
@@ -18,11 +31,11 @@ const sendOtp = async (req, res) => {
 
     if (otpRecord) {
       if (new Date() > otpRecord.otpExpires) {
-        await otpRecord.deleteOne(); 
+        await otpRecord.deleteOne();
       } else {
         return res
           .status(400)
-          .json({ error: 'OTP already sent to this phone number' });
+          .json({ error: "OTP already sent to this phone number" });
       }
     }
 
@@ -34,21 +47,17 @@ const sendOtp = async (req, res) => {
 
     await otpRecord.save();
 
-    await client.messages.create({
-      body: `Your OTP code is ${otp}. This code will expire in 10 minutes.`,
-      from: senderPhone,
-      to: phoneNumber,
-    });
-
+    // Send OTP in response instead
     res.json({
-      message: 'OTP sent to your phone number',
+      message: "OTP generated successfully",
+      otp, // Include the OTP in the response
       data: { phoneNumber },
     });
   } catch (error) {
-   console.log(error)
+    console.log(error);
     res
       .status(500)
-      .json({ message: 'Failed to send OTP. Please try again later.' });
+      .json({ message: "Failed to send OTP. Please try again later." });
   }
 };
 
@@ -57,27 +66,29 @@ const verifyOtp = async (req, res) => {
   const { phoneNumber, otp } = req.body;
 
   if (!phoneNumber || !otp) {
-    return res.status(400).json({ error: 'Phone number and OTP are required' });
+    return res.status(400).json({ error: "Phone number and OTP are required" });
   }
 
   try {
     const otpRecord = await OtpModel.findOne({ phoneNumber });
 
     if (!otpRecord) {
-      return res.status(404).json({ error: 'OTP record not found for this phone number' });
+      return res
+        .status(404)
+        .json({ error: "OTP record not found for this phone number" });
     }
 
     if (otpRecord.otp !== otp || new Date() > otpRecord.otpExpires) {
-      return res.status(400).json({ error: 'Invalid or expired OTP' });
+      return res.status(400).json({ error: "Invalid or expired OTP" });
     }
 
     otpRecord.otpExpires = null;
     otpRecord.otp = null;
     await otpRecord.save();
 
-    return res.status(200).json({ message: 'OTP verified successfully' });
+    return res.status(200).json({ message: "OTP verified successfully" });
   } catch (error) {
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 

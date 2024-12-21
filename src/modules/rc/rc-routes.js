@@ -8,10 +8,10 @@ const {
 } = require("./rc-controller");
 const router = express.Router();
 
-router.post("/create", createRc);
-router.post("/get-all", getAllRcs);
-router.post("/get-by-id", getRcById);
-router.post("/update", updateRc);
-router.post("/delete", deleteRc);
+router.post("/create-rc", createRc);
+router.get("/get-all-rc", getAllRcs);
+router.get("/get-rc-by-id/:id", getRcById);
+router.post("/update-rc/:id", updateRc);
+router.delete("/delete-rc/:id", deleteRc);
 
 module.exports = router;
