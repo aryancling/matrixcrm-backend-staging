@@ -6,7 +6,7 @@ mongoose
   .connect(
     `mongodb://${process.env.DATABASE_USERNAME}:${encodeURIComponent(
       process.env.DATABASE_PASSWORD
-    )}${process.env.DATABASE_URL}`,
+    )}@${process.env.DATABASE_URL}`,
     {
       useNewUrlParser: true,
     }
