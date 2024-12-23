@@ -4,7 +4,7 @@ const UserSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     mobile: { type: String, required: true },
-    role: { type: String, required: true },
+    role: { type: mongoose.Schema.Types.ObjectId, ref: 'Role', required: true },
   },
   {
     timestamps: true,

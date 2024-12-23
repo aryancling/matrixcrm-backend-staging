@@ -6,11 +6,16 @@ const RoleRoutes = require("../src/modules/role/role-routes");
 const RcRoutes = require("../src/modules/rc/rc-routes");
 const CategoryRoutes = require("../src/modules/category/category-routes");
 const BankUserRoutes = require("../src/modules/bank-user/bankUser-routes");
+const ItemRoutes = require("../src/modules/item/item-route");
 
 const moduleRoutes = [
   {
     path: "/otp",
     route: otpRoutes,
+  },
+  {
+    path: "/item",
+    route: ItemRoutes,
   },
   {
     path: "/user",

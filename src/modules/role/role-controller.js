@@ -2,11 +2,11 @@ const {
   sendSuccessResponse,
   sendFailedResponse,
 } = require("../../utils/response");
-const { RoleModal } = require("./role-modal");
+const { RoleModel } = require("./role-modal");
 
 const createRole = async (req, res) => {
   try {
-    const newRole = await RoleModal.create(req?.body);
+    const newRole = await RoleModel.create(req?.body);
     sendSuccessResponse(res, {
       message: "Role created successfully",
       role: newRole,
@@ -20,8 +20,7 @@ const createRole = async (req, res) => {
 
 const getAllRoles = async (req, res) => {
   try {
-    const query = req?.query;
-    const roles = await RoleModal.find(query);
+    const roles = await RoleModel.find();
     sendSuccessResponse(res, {
       data: roles,
     });
@@ -32,7 +31,7 @@ const getAllRoles = async (req, res) => {
 
 const getRoleById = async (req, res) => {
   try {
-    const role = await RoleModal.findById(req.params.id);
+    const role = await RoleModel.findById(req.params.id);
     if (!role) {
       return res.status(404).json({ message: "Role not found" });
     }
@@ -44,7 +43,7 @@ const getRoleById = async (req, res) => {
 
 const updateRole = async (req, res) => {
   try {
-    const updatedRole = await RoleModal.findByIdAndUpdate(
+    const updatedRole = await RoleModel.findByIdAndUpdate(
       req.params.id,
       { ...req.body },
       { new: true }
@@ -62,7 +61,7 @@ const updateRole = async (req, res) => {
 
 const deleteRole = async (req, res) => {
   try {
-    const deletedRole = await RoleModal.findByIdAndDelete(req.params.id);
+    const deletedRole = await RoleModel.findByIdAndDelete(req.params.id);
     if (!deletedRole) {
       return res.status(404).json({ message: "Role not found" });
     }
