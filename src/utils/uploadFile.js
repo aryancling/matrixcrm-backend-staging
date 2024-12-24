@@ -7,7 +7,7 @@ module.exports = {
     failCallback = () => {}
   ) => {
     const uploadParams = {
-      Bucket: uploadData?.bucketName || 'etmmam-image-videos',
+      Bucket: uploadData?.bucketName || process.env.BUCKET_NAME,
       Key: uploadData.key,
       Body: uploadData.file,
       ContentType: uploadData.contentType,

@@ -45,6 +45,19 @@ async function deleteBank(req, res) {
     }
 }
 
+// Get a bank by ID
+async function getBankById(req, res) {
+    try {
+        const bank = await BankModel.findById(req.params.id);
+        if (!bank) {
+            return res.status(404).json({ message: "Bank not found" });
+        }
+        res.status(200).json(bank);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
 // ... existing code ...
 
-module.exports = { createBank, getAllBanks, updateBank, deleteBank };
+module.exports = { createBank, getAllBanks, updateBank, deleteBank, getBankById };

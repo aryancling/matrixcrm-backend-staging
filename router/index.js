@@ -7,6 +7,8 @@ const RcRoutes = require("../src/modules/rc/rc-routes");
 const CategoryRoutes = require("../src/modules/category/category-routes");
 const BankUserRoutes = require("../src/modules/bank-user/bankUser-routes");
 const ItemRoutes = require("../src/modules/item/item-route");
+const ServiceRequest = require("../src/modules/serviceRequests/service-request-routes");
+const BankRoutes = require("../src/modules/bank/bank-routes");
 
 const moduleRoutes = [
   {
@@ -36,6 +38,14 @@ const moduleRoutes = [
   {
     path: "/category",
     route: CategoryRoutes,
+  },
+  {
+    path: "/serviceRequest",
+    route: ServiceRequest,
+  },
+  {
+    path: "/Bank",
+    route:BankRoutes ,
   },
 ];
 

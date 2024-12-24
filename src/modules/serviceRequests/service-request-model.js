@@ -16,7 +16,7 @@ const Status = {
 // Define the Service Request schema
 const ServiceRequestSchema = new mongoose.Schema(
   {
-    bankId: { type: mongoose.Types.ObjectId, required: true },
+    bankId: { type: mongoose.Types.ObjectId},
     title: { type: String, required: true },
     description: { type: String, required: true },
     serviceType: { type: String, required: true },
