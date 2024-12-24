@@ -2,6 +2,7 @@ const otplib = require("otplib");
 const twilio = require("twilio");
 const { OtpModel } = require("./otp-modal");
 const {BankUserModal} = require('../bank-user/bankUser-modal')
+const {UserModal} = require('../user/user-modal')
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
@@ -13,13 +14,14 @@ const sendOtp = async (req, res) => {
   const { phoneNumber } = req.body;
 
   try {
-    // Check if the phone number exists in the BankUser collection
-    const user = await BankUserModal.findOne({ mobile: phoneNumber });
+    // Check if the phone number exists in the User collection
+    const user = await UserModal.findOne({ mobile: phoneNumber });
+    const bankUser = await BankUserModal.findOne({ mobile: phoneNumber });
 
-    if (!user) {
+    if (!user && !bankUser) {
       return res
         .status(400)
-        .json({ error: "Phone number is not registered with any bank user" });
+        .json({ error: "Phone number is not registered with any user" });
     }
 
     otplib.authenticator.options = { digits: 6 };
@@ -86,7 +88,15 @@ const verifyOtp = async (req, res) => {
     otpRecord.otp = null;
     await otpRecord.save();
 
-    return res.status(200).json({ message: "OTP verified successfully" });
+
+    const user = await UserModal.findOne({ mobile: phoneNumber });
+    const bankUser = await BankUserModal.findOne({ mobile: phoneNumber });
+    const userId = user ? user._id : bankUser ? bankUser._id : null;
+
+    return res.status(200).json({ 
+      message: "OTP verified successfully", 
+      userId
+    });
   } catch (error) {
     return res.status(500).json({ error: "Internal Server Error" });
   }

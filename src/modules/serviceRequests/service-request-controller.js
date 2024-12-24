@@ -5,7 +5,7 @@ const createRequest = async (req, res) => {
   try {
     const { bankId, title, description, beforeImages, serviceType } = req.body;
 
-    if (!bankId || !title || !description || !serviceType) {
+    if (!title || !description || !serviceType) {
       return res
         .status(400)
         .json({ message: "All required fields must be provided." });

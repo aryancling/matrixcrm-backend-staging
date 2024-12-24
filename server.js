@@ -2,7 +2,7 @@ const http = require('http');
 const app = require('.');
 const logger = require('./config/logger.config');
 
-const port = process.env.PORT || 8080;
+const port = 3001;
 
 const server = http.createServer(app);
 
