@@ -9,11 +9,16 @@ const BankUserRoutes = require("../src/modules/bank-user/bankUser-routes");
 const ItemRoutes = require("../src/modules/item/item-route");
 const ServiceRequest = require("../src/modules/serviceRequests/service-request-routes");
 const BankRoutes = require("../src/modules/bank/bank-routes");
+const AssignServiceRoutes = require("../src/modules/assign-serivce/assign-service-route");
 
 const moduleRoutes = [
   {
     path: "/otp",
     route: otpRoutes,
+  },
+  {
+    path: "/assign-service",
+    route: AssignServiceRoutes,
   },
   {
     path: "/item",
@@ -45,7 +50,7 @@ const moduleRoutes = [
   },
   {
     path: "/Bank",
-    route:BankRoutes ,
+    route: BankRoutes,
   },
 ];
 

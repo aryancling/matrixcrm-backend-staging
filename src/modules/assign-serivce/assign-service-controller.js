@@ -3,16 +3,22 @@ const AssignServiceModel = require("./assign-service-model");
 // Create a New Assignment
 const createAssignment = async (req, res) => {
   try {
-    const { serviceId, itemId, qty } = req.body;
+    const { serviceId, items } = req.body;
 
     // Validate required fields
-    if (!serviceId || !itemId || qty === undefined) {
+    if (!serviceId || !Array.isArray(items) || items.length === 0) {
       return res
         .status(400)
-        .json({ message: "serviceId, itemId, and qty are required." });
+        .json({ message: "serviceId and items are required." });
     }
 
-    const newAssignment = new AssignServiceModel({ serviceId, itemId, qty });
+    // Check if serviceId already exists
+    const existingAssignment = await AssignServiceModel.findOne({ serviceId });
+    if (existingAssignment) {
+      return res.status(400).json({ message: "serviceId already exists. Please update the existing assignment." });
+    }
+
+    const newAssignment = new AssignServiceModel({ serviceId, items });
 
     await newAssignment.save();
     res.status(201).json({
@@ -46,7 +52,10 @@ const getAssignmentsByServiceId = async (req, res) => {
     const { serviceId } = req.params;
 
     const assignments = await AssignServiceModel.find({ serviceId })
-      .populate("itemId", "itemName category hsnCode gstPercentage unit rate")
+      .populate({
+        path: 'items.itemId',
+        select: 'itemName category unit rate'
+      })
       .exec();
 
     if (!assignments.length) {

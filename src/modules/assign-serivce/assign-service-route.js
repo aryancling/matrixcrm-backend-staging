@@ -2,9 +2,9 @@ const express = require("express");
 const router = express.Router();
 const AssignServiceController = require("./assign-service-controller");
 
-router.post("/createAssignment", AssignServiceController.createAssignment);
+router.post("/create-assignment", AssignServiceController.createAssignment);
 
-router.get("/assignments", AssignServiceController.getAllAssignments);
+router.get("/get-all-assignments", AssignServiceController.getAllAssignments);
 
 router.get(
   "/assignments/service/:serviceId",
