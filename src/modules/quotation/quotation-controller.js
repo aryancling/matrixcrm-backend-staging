@@ -1,5 +1,5 @@
 const QuotationModel = require("./quotation-model");
-const ServiceRequestModal = require("../serviceRequests/service-request-model");
+const {ServiceRequestModal} = require("../serviceRequests/service-request-model");
 const createQuotation = async (req, res) => {
   try {
     const { serviceRequestId, items } = req.body;

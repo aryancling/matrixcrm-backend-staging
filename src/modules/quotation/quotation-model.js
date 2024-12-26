@@ -7,13 +7,18 @@ const QuotationSchema = new mongoose.Schema(
       ref: "ServiceRequest",
       required: true,
     },
-    items: [
-      {
-        quantity: { type: Number, required: true },
-        itemName: { type: String, required: true },
-        unit: { type: String, required: true },
-        rate: { type: Number, required: true },
+    items: [{
+      itemId: {
+        type: mongoose.Types.ObjectId,
+        ref: "Item",
+        required: true,
       },
+      qty: {
+        type: Number,
+        required: true,
+        min: 0,
+      },
+    }
     ],
   },
   {

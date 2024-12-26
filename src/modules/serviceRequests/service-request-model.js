@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 
 require("dotenv").config();
 
-// Define the OTP schema
 const Status = {
   PENDING: "Pending",
   APPROVED: "Approved",
@@ -11,9 +10,9 @@ const Status = {
   REVISE: "REVISED",
   UPDATED: "Updated",
   ASSIGNED: "Assigned",
+  COMPLETED: 'Completed'
 };
 
-// Define the Service Request schema
 const ServiceRequestSchema = new mongoose.Schema(
   {
     bankId: { type: mongoose.Types.ObjectId},
@@ -35,7 +34,17 @@ const ServiceRequestSchema = new mongoose.Schema(
       enum: Object.values(Status),
       default: Status.PENDING,
     },
+    quotationApprovalStatus: {
+      type: String,
+      enum: Object.values(Status),
+      default: Status.PENDING,
+    },
     quotationUpdatedAt: { type: Date },
+    taskCompletionStatus: {
+      type: String,
+      enum: Object.values(Status),
+      default: Status.PENDING,
+    },
   },
   {
     timestamps: true,
