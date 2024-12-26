@@ -12,9 +12,9 @@ router.put(
   QuotationController.updateQuotationByServiceId
 );
 
-router.post("/quotations", QuotationController.createQuotation);
+router.post("/create-quotations", QuotationController.createQuotation);
 router.get("/quotations", QuotationController.getAllQuotations);
-router.get("/quotations/:id", QuotationController.getQuotationById);
-router.put("/quotations/:id", QuotationController.updateQuotation);
+router.get("/get-quotations/:id", QuotationController.getQuotationById);
+router.post("/quotations/:id", QuotationController.updateQuotation);
 router.delete("/quotations/:id", QuotationController.deleteQuotation);
 module.exports = router;

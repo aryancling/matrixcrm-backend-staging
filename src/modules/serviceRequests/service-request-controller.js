@@ -162,7 +162,7 @@ const addOrUpdateQuotationForRequest = async (req, res) => {
       id,
       {
         quotation: quotationId,
-        quotationCreatedStatus: Status.UPDATED,
+        quotationCreatedStatus: Status.ASSIGNED,
         quotationUpdatedAt: new Date(),
       },
       { new: true }

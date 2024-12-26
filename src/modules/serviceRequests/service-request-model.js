@@ -34,6 +34,11 @@ const ServiceRequestSchema = new mongoose.Schema(
       enum: Object.values(Status),
       default: Status.PENDING,
     },
+    quotationApprovalStatus: {
+      type: String,
+      enum: Object.values(Status),
+      default: Status.PENDING,
+    },
     quotationUpdatedAt: { type: Date },
     taskCompletionStatus: {
       type: String,
