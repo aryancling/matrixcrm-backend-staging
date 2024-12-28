@@ -20,7 +20,7 @@ const createBankUser = async (req, res) => {
       name,
       mobile,
       user_type,
-      reporting_to: reporting_to || undefined, // Set to undefined if empty
+      reporting_to: reporting_to || undefined, 
       bankId,
       profileImage
     });
@@ -61,7 +61,20 @@ const getBankUserById = async (req, res) => {
       .json({ message: "Error fetching user", error: error.message });
   }
 };
-
+const getBankUserByBankId = async (req, res) => {
+  try {
+    const { id: bankId } = req.params;
+    const user = await BankUserModal.find({bankId});
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(200).json(user);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Error fetching user", error: error.message });
+  }
+};
 // Update user details
 const updateBankUser = async (req, res) => {
   try {
@@ -114,4 +127,5 @@ module.exports = {
   getBankUserById,
   updateBankUser,
   deleteBankUser,
+  getBankUserByBankId,
 };

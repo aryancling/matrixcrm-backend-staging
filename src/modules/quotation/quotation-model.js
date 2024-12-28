@@ -18,6 +18,12 @@ const QuotationSchema = new mongoose.Schema(
         required: true,
         min: 0,
       },
+      usedQty: {
+        type: Number,
+      },
+      completionStatus: {
+        type: String,
+      },
     }
     ],
   },
