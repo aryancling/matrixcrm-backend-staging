@@ -12,9 +12,13 @@ const createCategory = async (req, res) => {
       category: newCategory,
     });
   } catch (error) {
-    sendFailedResponse(res, {
-      message: "Error creating category",
-    });
+    sendFailedResponse(
+      res,
+      {
+        message: "Error creating category",
+      },
+      error
+    );
   }
 };
 

@@ -12,9 +12,13 @@ const createRole = async (req, res) => {
       role: newRole,
     });
   } catch (error) {
-    sendFailedResponse(res, {
-      message: "Error creating role",
-    });
+    sendFailedResponse(
+      res,
+      {
+        message: "Error creating role",
+      },
+      error
+    );
   }
 };
 

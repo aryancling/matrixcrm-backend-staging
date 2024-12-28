@@ -12,9 +12,13 @@ const createRc = async (req, res) => {
       rc: newRc,
     });
   } catch (error) {
-    sendFailedResponse(res, {
-      message: "Error creating rc",
-    });
+    sendFailedResponse(
+      res,
+      {
+        message: "Error creating rc",
+      },
+      error
+    );
   }
 };
 
