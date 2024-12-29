@@ -4,7 +4,8 @@ const mongoose = require("mongoose"); // Import mongoose for ObjectId validation
 // Create a new user
 const createBankUser = async (req, res) => {
   try {
-    const { name, mobile, user_type, reporting_to, bankId ,profileImage } = req.body;
+    const { name, mobile, user_type, reporting_to, bankId, profileImage } =
+      req.body;
 
     // Validate ObjectId for bankId
     if (bankId && !mongoose.Types.ObjectId.isValid(bankId)) {
@@ -12,7 +13,11 @@ const createBankUser = async (req, res) => {
     }
 
     // Validate ObjectId for reporting_to only if it's provided
-    if (reporting_to && reporting_to !== "" && !mongoose.Types.ObjectId.isValid(reporting_to)) {
+    if (
+      reporting_to &&
+      reporting_to !== "" &&
+      !mongoose.Types.ObjectId.isValid(reporting_to)
+    ) {
       return res.status(400).json({ message: "Invalid reporting_to ID" });
     }
 
@@ -20,9 +25,9 @@ const createBankUser = async (req, res) => {
       name,
       mobile,
       user_type,
-      reporting_to: reporting_to || undefined, 
+      reporting_to: reporting_to || undefined,
       bankId,
-      profileImage
+      profileImage,
     });
     await newUser.save();
     return res
@@ -39,6 +44,26 @@ const createBankUser = async (req, res) => {
 const getAllBankUsers = async (req, res) => {
   try {
     const users = await BankUserModal.find();
+    return res.status(200).json(users);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Error fetching users", error: error.message });
+  }
+};
+
+// Get users by query
+const getUsersByQuery = async (req, res) => {
+  try {
+    let designation_query = {};
+    const { designations, ...rest } = req?.body;
+    if (designations) {
+      designation_query = { user_type: { $in: designations } };
+    }
+    const users = await BankUserModal.find({
+      ...rest,
+      ...designation_query,
+    });
     return res.status(200).json(users);
   } catch (error) {
     return res
@@ -64,7 +89,7 @@ const getBankUserById = async (req, res) => {
 const getBankUserByBankId = async (req, res) => {
   try {
     const { id: bankId } = req.params;
-    const user = await BankUserModal.find({bankId});
+    const user = await BankUserModal.find({ bankId });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -81,7 +106,11 @@ const updateBankUser = async (req, res) => {
     const { reporting_to, bankId } = req.body;
 
     // Validate ObjectId for reporting_to only if it's provided
-    if (reporting_to && reporting_to !== "" && !mongoose.Types.ObjectId.isValid(reporting_to)) {
+    if (
+      reporting_to &&
+      reporting_to !== "" &&
+      !mongoose.Types.ObjectId.isValid(reporting_to)
+    ) {
       return res.status(400).json({ message: "Invalid reporting_to ID" });
     }
     if (bankId && !mongoose.Types.ObjectId.isValid(bankId)) {
@@ -124,6 +153,7 @@ const deleteBankUser = async (req, res) => {
 module.exports = {
   createBankUser,
   getAllBankUsers,
+  getUsersByQuery,
   getBankUserById,
   updateBankUser,
   deleteBankUser,
