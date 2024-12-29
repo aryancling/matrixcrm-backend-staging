@@ -150,14 +150,14 @@ const assignSm = async (req, res) => {
 const addOrUpdateQuotationForRequest = async (req, res) => {
   try {
     const { id } = req.params;
-    const { quotationId  } = req.body;
+    const { quotationId } = req.body;
 
     const updatedRequest = await ServiceRequestModal.findByIdAndUpdate(
       id,
       {
         quotation: quotationId,
         quotationCreatedStatus: Status.ASSIGNED,
-        quotationApprovalStatus:Status.PENDING,
+        quotationApprovalStatus: Status.PENDING,
         quotationUpdatedAt: new Date(),
       },
       { new: true }
@@ -178,6 +178,7 @@ const addOrUpdateQuotationForRequest = async (req, res) => {
     });
   }
 };
+
 const getServiceRequestDetails = async (req, res) => {
   try {
     const { serviceRequestId } = req.params;
@@ -190,13 +191,24 @@ const getServiceRequestDetails = async (req, res) => {
         path: "quotation",
         populate: {
           path: "items.itemId",
-          select: "name price",
+          select: "name price usedQty completionStatus",
         },
       });
 
     if (!serviceRequest) {
       return res.status(404).json({ message: "Service Request not found" });
     }
+
+    // Check if all items in the quotation have completionStatus as true
+    const areAllItemsCompleted =
+      serviceRequest.quotation?.items?.every(
+        (item) => item?.completionStatus === true
+      ) || false;
+
+    // Find the last incomplete item
+    const lastIncompleteItem = serviceRequest.quotation?.items?.filter(
+      (item) => item.completionStatus === false
+    );
 
     // Prepare the details for the response
     const steps = [
@@ -223,9 +235,13 @@ const getServiceRequestDetails = async (req, res) => {
         status:
           serviceRequest.quotationCreatedStatus === Status.PENDING
             ? "In Progress"
+            : serviceRequest.quotationCreatedStatus === Status.ASSIGNED
+            ? "Assigned"
             : "Completed",
         description:
-          "Waiting for service manager to prepare the quote of the task.",
+          serviceRequest.quotationCreatedStatus === Status.ASSIGNED
+            ? null
+            : "Waiting for service manager to prepare the quote of the task.",
         quotationId: serviceRequest.quotation?._id,
         timestamp: serviceRequest.quotationUpdatedAt,
         isCompleted: serviceRequest.quotationCreatedStatus !== Status.PENDING,
@@ -234,10 +250,12 @@ const getServiceRequestDetails = async (req, res) => {
       },
       {
         step: "Task in Progress",
-        status: "In Progress",
-        description: `Working on ${serviceRequest.serviceType}`,
+        status: areAllItemsCompleted ? "Completed" : "In Progress",
+        description: areAllItemsCompleted
+          ? `All tasks have been completed.`
+          : `Working on  ${lastIncompleteItem?.itemId?.itemName || "N/A"}`,
         timestamp: serviceRequest.updatedAt,
-        isCompleted: false,
+        isCompleted: areAllItemsCompleted,
         hasAction: true,
         actionLabel: "View Steps",
       },
@@ -259,6 +277,7 @@ const getServiceRequestDetails = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 // Add after-images for a Service Request
 const addAfterImagesForRequest = async (req, res) => {
   try {
@@ -299,14 +318,14 @@ const updateQuotationApprovalStatus = async (req, res) => {
     const serviceRequest = await ServiceRequestModal.findByIdAndUpdate(
       id,
       { quotationApprovalStatus: status },
-      { new: true } 
+      { new: true }
     );
 
     if (!serviceRequest) {
       return res.status(404).json({ message: "Service request not found" });
     }
 
-    return res.status(200).json(serviceRequest);
+    return res.status(200).json({ message: "Status Updated Succesfully" });
   } catch (error) {
     return res.status(500).json({ message: "Server error", error });
   }
@@ -322,5 +341,5 @@ module.exports = {
   addAfterImagesForRequest,
   getServiceRequestDetails,
   updateQuotationApprovalStatus,
-  getServiceRequestsByBankId
+  getServiceRequestsByBankId,
 };

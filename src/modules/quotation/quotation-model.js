@@ -22,7 +22,8 @@ const QuotationSchema = new mongoose.Schema(
         type: Number,
       },
       completionStatus: {
-        type: String,
+        type: Boolean,
+        default: false
       },
     }
     ],

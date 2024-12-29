@@ -16,7 +16,7 @@ const getUserAndBankUserById = async (req, res) => {
         userFrom: "User",
       });
     } else {
-      const BankUser = await BankUserModal.findById(id);
+      const BankUser = await BankUserModal.findById(id).populate('bankId');
       if (!BankUser) {
         return res.status(500).json({ message: "No User Available", error });
       }
