@@ -7,7 +7,7 @@ const Status = {
   PENDING: "Pending",
   APPROVED: "Approved",
   REJECTED: "Rejected",
-  REVISE: "REVISED",
+  REVISE: "Revise",
   UPDATED: "Updated",
   ASSIGNED: "Assigned",
   COMPLETED: 'Completed'

@@ -31,40 +31,29 @@ const createRequest = async (req, res) => {
     });
   }
 };
+// Get all Service Requests
 
-const getUnassignedPMServiceRequests = async (req, res) => {
+const getServiceRequestsByBankId = async (req, res) => {
   try {
-    const unassignedPMRequests = await ServiceRequestModal.find({
-      pmAssigned: null,
-    });
-    res.status(200).json(unassignedPMRequests);
+    const { Id: bankId } = req.params;
+
+    // Fetch all service requests by bankId and populate related fields
+    const requests = await ServiceRequestModal.find({ bankId })
+      .populate("pmAssigned")
+      .populate("smAssigned")
+      .populate("quotation");
+
+    // Respond with the fetched data
+    res.status(200).json({ data: requests });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Error retrieving unassigned PM service requests",
-        error,
-      });
+    // Handle errors
+    res.status(500).json({
+      message: "Error fetching Service Requests.",
+      error: error.message,
+    });
   }
 };
 
-// Function to get service requests not assigned to SM
-const getUnassignedSMServiceRequests = async (req, res) => {
-  try {
-    const unassignedSMRequests = await ServiceRequestModal.find({
-      smAssigned: null,
-    });
-    res.status(200).json(unassignedSMRequests);
-  } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Error retrieving unassigned SM service requests",
-        error,
-      });
-  }
-}
-// Get all Service Requests
 const getAllRequests = async (req, res) => {
   try {
     const requests = await ServiceRequestModal.find().populate(
@@ -83,14 +72,19 @@ const getAllRequests = async (req, res) => {
 const getRequestById = async (req, res) => {
   try {
     const { id } = req.params;
-    const request = await ServiceRequestModal.findById(id).populate(
-      "pmAssigned smAssigned quotation"
-    );
-
+    const request = await ServiceRequestModal.findById(id)
+      .populate("pmAssigned")
+      .populate("smAssigned")
+      .populate({
+        path: "quotation",
+        populate: {
+          path: "items.itemId",
+          select: "itemName rate",
+        },
+      });
     if (!request) {
       return res.status(404).json({ message: "Service Request not found." });
     }
-
     res.status(200).json({ data: request });
   } catch (error) {
     res.status(500).json({
@@ -156,13 +150,14 @@ const assignSm = async (req, res) => {
 const addOrUpdateQuotationForRequest = async (req, res) => {
   try {
     const { id } = req.params;
-    const { quotationId } = req.body;
+    const { quotationId  } = req.body;
 
     const updatedRequest = await ServiceRequestModal.findByIdAndUpdate(
       id,
       {
         quotation: quotationId,
         quotationCreatedStatus: Status.ASSIGNED,
+        quotationApprovalStatus:Status.PENDING,
         quotationUpdatedAt: new Date(),
       },
       { new: true }
@@ -189,9 +184,15 @@ const getServiceRequestDetails = async (req, res) => {
 
     // Find the service request by ID
     const serviceRequest = await ServiceRequestModal.findById(serviceRequestId)
-      .populate("pmAssigned", "name email") // Adjust the fields you need
+      .populate("pmAssigned", "name email")
       .populate("smAssigned", "name email")
-      .populate("quotation");
+      .populate({
+        path: "quotation",
+        populate: {
+          path: "items.itemId",
+          select: "name price",
+        },
+      });
 
     if (!serviceRequest) {
       return res.status(404).json({ message: "Service Request not found" });
@@ -285,6 +286,32 @@ const addAfterImagesForRequest = async (req, res) => {
   }
 };
 
+// Function to update quotation approval status
+const updateQuotationApprovalStatus = async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  if (!id || !Object.values(Status).includes(status)) {
+    return res.status(400).json({ message: "Invalid request data" });
+  }
+
+  try {
+    const serviceRequest = await ServiceRequestModal.findByIdAndUpdate(
+      id,
+      { quotationApprovalStatus: status },
+      { new: true } 
+    );
+
+    if (!serviceRequest) {
+      return res.status(404).json({ message: "Service request not found" });
+    }
+
+    return res.status(200).json(serviceRequest);
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error });
+  }
+};
+
 module.exports = {
   createRequest,
   getAllRequests,
@@ -294,6 +321,6 @@ module.exports = {
   addOrUpdateQuotationForRequest,
   addAfterImagesForRequest,
   getServiceRequestDetails,
-  getUnassignedPMServiceRequests,
-  getUnassignedSMServiceRequests
+  updateQuotationApprovalStatus,
+  getServiceRequestsByBankId
 };

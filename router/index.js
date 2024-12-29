@@ -12,10 +12,20 @@ const BankRoutes = require("../src/modules/bank/bank-routes");
 const AssignServiceRoutes = require("../src/modules/assign-serivce/assign-service-route");
 const QuotationsRoutes = require("../src/modules/quotation/quotation-route");
 const DiscussionBoardRoutes = require("../src/modules/discussion-board/discussion-board-routes");
+const PaymentsRoutes = require("../src/modules/payments/payment-route");
+const TimeLogRoutes = require("../src/modules/timeLog/time-log-routes");
 const moduleRoutes = [
   {
     path: "/otp",
     route: otpRoutes,
+  },
+  {
+    path: "/payments",
+    route: PaymentsRoutes,
+  },
+  {
+    path: "/time-log",
+    route: TimeLogRoutes,
   },
   {
     path: "/quotations",
