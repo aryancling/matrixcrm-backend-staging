@@ -215,8 +215,8 @@ console.log(serviceRequest)
 
     const lastIncompleteItem = serviceRequest.quotation?.items?.filter(
       (item) => item.completionStatus === false
-    );
-    console.log(lastIncompleteItem)
+    ) || [];
+
     const steps = [
       {
         step: "Service Request Raised",
