@@ -7,7 +7,7 @@ async function createPayment(req, res) {
         const savedPayment = await payment.save();
         res.status(201).json({ message: 'Payment Created Successfully' , });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(400).json({ message: 'Error Creating Payment'  ,  error: error.message});
     }
 }
 
@@ -23,7 +23,7 @@ async function getPaymentByServiceId(req, res) {
         
         res.json(payments);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message:'Error Getting Payments',  error: error.message });
     }
 }
 
@@ -44,7 +44,7 @@ async function updatePaymentStatus(req, res) {
         if (!updatedPayment) return res.status(404).json({ message: 'Payment not found' });
         res.json({ message: 'Status Updated Successfully' });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(400).json({ message: 'Error Updating status' , error: error.message });
     }
 }
 

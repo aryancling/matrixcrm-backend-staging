@@ -15,7 +15,7 @@ const Status = {
 
 const ServiceRequestSchema = new mongoose.Schema(
   {
-    bankId: { type: mongoose.Types.ObjectId},
+    bankId: { type: mongoose.Types.ObjectId , ref: 'Bank'},
     title: { type: String, required: true },
     description: { type: String, required: true },
     serviceType: { type: String, required: true },

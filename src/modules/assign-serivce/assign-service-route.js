@@ -11,7 +11,7 @@ router.get(
   AssignServiceController.getAssignmentsByServiceId
 );
 
-router.put(
+router.post(
   "/assignments/:assignmentId",
   AssignServiceController.updateAssignmentById
 );

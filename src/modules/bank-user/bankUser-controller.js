@@ -43,7 +43,7 @@ const createBankUser = async (req, res) => {
 // Get all users
 const getAllBankUsers = async (req, res) => {
   try {
-    const users = await BankUserModal.find();
+    const users = await BankUserModal.find().sort({ createdAt: -1 });;
     return res.status(200).json(users);
   } catch (error) {
     return res
@@ -63,7 +63,7 @@ const getUsersByQuery = async (req, res) => {
     const users = await BankUserModal.find({
       ...rest,
       ...designation_query,
-    });
+    }).sort({ createdAt: -1 });
     return res.status(200).json(users);
   } catch (error) {
     return res
@@ -89,7 +89,7 @@ const getBankUserById = async (req, res) => {
 const getBankUserByBankId = async (req, res) => {
   try {
     const { id: bankId } = req.params;
-    const user = await BankUserModal.find({ bankId });
+    const user = await BankUserModal.find({ bankId }).sort({ createdAt: -1 });;
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -119,7 +119,7 @@ const updateBankUser = async (req, res) => {
 
     const updatedUser = await BankUserModal.findByIdAndUpdate(
       req.params.id,
-      { ...req.body, reporting_to: reporting_to || undefined }, // Set to undefined if empty
+      { ...req.body, reporting_to: reporting_to || undefined }, 
       { new: true } // Return the updated user
     );
     if (!updatedUser) {

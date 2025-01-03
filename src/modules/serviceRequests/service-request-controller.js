@@ -75,13 +75,19 @@ const getRequestById = async (req, res) => {
     const request = await ServiceRequestModal.findById(id)
       .populate("pmAssigned")
       .populate("smAssigned")
+      .populate("bankId")
       .populate({
         path: "quotation",
-        populate: {
-          path: "items.itemId",
-          select: "itemName rate",
-        },
-      });
+        populate: [
+          {
+            path: "items.rcId",
+            select: 'rc_number rate amount unit bankId',
+            populate: {
+              path: "particulars",
+            },
+          },
+        ],
+      }).sort({ createdAt: -1 });;
     if (!request) {
       return res.status(404).json({ message: "Service Request not found." });
     }
@@ -190,27 +196,27 @@ const getServiceRequestDetails = async (req, res) => {
       .populate({
         path: "quotation",
         populate: {
-          path: "items.itemId",
-          select: "name price usedQty completionStatus",
+          path: "items.rcId",
+          select: "particulars price usedQty completionStatus",
+          populate: {
+            path: "particulars",
+          },
         },
-      });
-
+      }).sort({ createdAt: -1 });;
+console.log(serviceRequest)
     if (!serviceRequest) {
       return res.status(404).json({ message: "Service Request not found" });
     }
 
-    // Check if all items in the quotation have completionStatus as true
     const areAllItemsCompleted =
       serviceRequest.quotation?.items?.every(
         (item) => item?.completionStatus === true
       ) || false;
 
-    // Find the last incomplete item
     const lastIncompleteItem = serviceRequest.quotation?.items?.filter(
       (item) => item.completionStatus === false
     );
-
-    // Prepare the details for the response
+    console.log(lastIncompleteItem)
     const steps = [
       {
         step: "Service Request Raised",
@@ -225,7 +231,10 @@ const getServiceRequestDetails = async (req, res) => {
           serviceRequest.pmAssignedStatus === Status.PENDING
             ? "In Progress"
             : "Completed",
-        description: `Waiting for project manager to analyze the task.`,
+        description:
+          serviceRequest.quotationCreatedStatus === Status.ASSIGNED
+            ? ""
+            : `Waiting for project manager to analyze the task.`,
         assignedTo: serviceRequest.pmAssigned?.name,
         timestamp: serviceRequest.updatedAt,
         isCompleted: serviceRequest.pmAssignedStatus !== Status.PENDING,
@@ -253,7 +262,7 @@ const getServiceRequestDetails = async (req, res) => {
         status: areAllItemsCompleted ? "Completed" : "In Progress",
         description: areAllItemsCompleted
           ? `All tasks have been completed.`
-          : `Working on  ${lastIncompleteItem?.itemId?.itemName || "N/A"}`,
+          : `Working on  ${lastIncompleteItem[0]?.rcId?.particulars?.itemName || "N/A"}`,
         timestamp: serviceRequest.updatedAt,
         isCompleted: areAllItemsCompleted,
         hasAction: true,
@@ -265,16 +274,19 @@ const getServiceRequestDetails = async (req, res) => {
           serviceRequest.taskCompletionStatus === Status.COMPLETED
             ? "Completed"
             : "Waiting",
-        description: "Waiting for client to approve the task.",
+        description: areAllItemsCompleted
+          ? ""
+          : "Waiting for client to approve the task.",
         timestamp: serviceRequest.updatedAt,
-        isCompleted: serviceRequest.taskCompletionStatus === Status.COMPLETED,
+        isCompleted: areAllItemsCompleted,
       },
     ];
 
     return res.status(200).json({ steps });
   } catch (error) {
-    console.error("Error fetching service request details:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res
+      .status(500)
+      .json({ message: "Error Fetching Details", error: error.message });
   }
 };
 
@@ -291,7 +303,9 @@ const addAfterImagesForRequest = async (req, res) => {
     );
 
     if (!updatedRequest) {
-      return res.status(404).json({ message: "Service Request not found." });
+      return res
+        .status(404)
+        .json({ message: "Service Request not found.", error: error.message });
     }
 
     res.status(200).json({
@@ -327,7 +341,9 @@ const updateQuotationApprovalStatus = async (req, res) => {
 
     return res.status(200).json({ message: "Status Updated Succesfully" });
   } catch (error) {
-    return res.status(500).json({ message: "Server error", error });
+    return res
+      .status(500)
+      .json({ message: "Error adding after-images.", error: error.message });
   }
 };
 

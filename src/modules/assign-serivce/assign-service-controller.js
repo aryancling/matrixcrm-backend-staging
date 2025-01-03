@@ -1,3 +1,5 @@
+const ItemModel = require("../item/item-model");
+const { RcModal } = require("../rc/rc-modal");
 const AssignServiceModel = require("./assign-service-model");
 
 // Create a New Assignment
@@ -12,15 +14,38 @@ const createAssignment = async (req, res) => {
         .json({ message: "serviceId and items are required." });
     }
 
-    // Check if serviceId already exists
+    // Check if the service ID already has an assignment
     const existingAssignment = await AssignServiceModel.findOne({ serviceId });
     if (existingAssignment) {
-      return res.status(400).json({ message: "serviceId already exists. Please update the existing assignment." });
+      return res.status(400).json({
+        message: "serviceId already exists. Please update the existing assignment.",
+      });
     }
 
-    const newAssignment = new AssignServiceModel({ serviceId, items });
+    // Process items to update usedqty in the Item model
+    for (const item of items) {
+      const rc = await RcModal.findById(item.rcId).populate('particulars');
+      if (!rc) {
+        return res.status(404).json({ message: `Rc with ID ${item.rcId} not found.` });
+      }
 
+      const itemId = rc.particulars._id; 
+      const itemModel = await ItemModel.findById(itemId);
+      if (!itemModel) {
+        return res.status(404).json({ message: `Item with ID ${itemId} not found.` });
+      }
+      if ((itemModel.usedqty || 0) + item.qty > itemModel.qty) {
+        return res.status(400).json({ message: 'Cannot exceed the available quantity.' });
+      }
+      // Update usedqty
+      itemModel.usedqty = (itemModel.usedqty || 0) + item.qty;
+      await itemModel.save();
+    }
+
+    // Create the assignment
+    const newAssignment = new AssignServiceModel({ serviceId, items });
     await newAssignment.save();
+
     res.status(201).json({
       message: "Assignment created successfully.",
       data: newAssignment,
@@ -32,12 +57,13 @@ const createAssignment = async (req, res) => {
   }
 };
 
-// Get All Assignments
+
 const getAllAssignments = async (req, res) => {
   try {
     const assignments = await AssignServiceModel.find()
       .populate("serviceId", "title description")
-      .populate("itemId", "itemName category");
+      .populate("rcId", "itemName category")
+      .sort({ createdAt: -1 });
     res.status(200).json({ data: assignments });
   } catch (error) {
     res
@@ -46,18 +72,17 @@ const getAllAssignments = async (req, res) => {
   }
 };
 
-// Get Assignments by Service ID
 const getAssignmentsByServiceId = async (req, res) => {
   try {
     const { serviceId } = req.params;
 
     const assignments = await AssignServiceModel.find({ serviceId })
       .populate({
-        path: 'items.itemId',
-        select: 'itemName category unit rate'
+        path: "items.rcId",
+          populate: {
+            path: 'particulars'
+          }
       })
-      .exec();
-
     if (!assignments.length) {
       return res
         .status(404)
@@ -73,7 +98,6 @@ const getAssignmentsByServiceId = async (req, res) => {
   }
 };
 
-// Update Assignment by ID
 const updateAssignmentById = async (req, res) => {
   try {
     const { assignmentId } = req.params;
@@ -84,9 +108,6 @@ const updateAssignmentById = async (req, res) => {
       updates,
       { new: true }
     )
-      .populate("serviceId", "title description")
-      .populate("itemId", "itemName category");
-
     if (!updatedAssignment) {
       return res.status(404).json({ message: "Assignment not found." });
     }
@@ -102,7 +123,6 @@ const updateAssignmentById = async (req, res) => {
   }
 };
 
-// Delete Assignment by ID
 const deleteAssignmentById = async (req, res) => {
   try {
     const { assignmentId } = req.params;

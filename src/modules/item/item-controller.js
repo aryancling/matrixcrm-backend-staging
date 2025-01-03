@@ -43,7 +43,7 @@ const createItem = async (req, res) => {
 // Get All Items
 const getAllItems = async (req, res) => {
   try {
-    const items = await ItemModel.find();
+    const items = await ItemModel.find().sort({ createdAt: -1 });;
     res.status(200).json({ data: items });
   } catch (error) {
     res
