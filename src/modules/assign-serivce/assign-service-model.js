@@ -9,9 +9,9 @@ const AssignServiceSchema = new mongoose.Schema(
       required: true,   
     },
     items: [{
-      itemId: {
+      rcId: {
         type: mongoose.Types.ObjectId,
-        ref: "Item",
+        ref: "Rc",
         required: true,
       },
       qty: {

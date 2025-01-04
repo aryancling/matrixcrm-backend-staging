@@ -1,13 +1,8 @@
 const otplib = require("otplib");
-const twilio = require("twilio");
 const { OtpModel } = require("./otp-modal");
 const {BankUserModal} = require('../bank-user/bankUser-modal')
 const {UserModal} = require('../user/user-modal')
-const client = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
-const senderPhone = process.env.TWILIO_PHONE_NUMBER;
+
 
 // Send OTP to mobile number
 const sendOtp = async (req, res) => {
@@ -59,7 +54,7 @@ const sendOtp = async (req, res) => {
     console.log(error);
     res
       .status(500)
-      .json({ message: "Failed to send OTP. Please try again later." });
+      .json({ message: "Failed to send OTP. Please try again later."  , error: error.message });
   }
 };
 
@@ -87,18 +82,30 @@ const verifyOtp = async (req, res) => {
     otpRecord.otpExpires = null;
     otpRecord.otp = null;
     await otpRecord.save();
-
-
-    const user = await UserModal.findOne({ mobile: phoneNumber });
+    let userId = null;
+    let userFrom = null;
+    let userRole = null;
+    const user = await UserModal.findOne({ mobile: phoneNumber }).populate('role');
     const bankUser = await BankUserModal.findOne({ mobile: phoneNumber });
-    const userId = user ? user._id : bankUser ? bankUser._id : null;
+
+    if (user) {
+      userId = user._id;
+      userFrom = 'User';
+      userRole= user?.role?.name
+
+    } else if (bankUser) {
+      userId = bankUser._id;
+      userFrom = 'BankUser';
+    }
 
     return res.status(200).json({ 
       message: "OTP verified successfully", 
-      userId
+      userId,
+      userFrom,
+      userRole
     });
   } catch (error) {
-    return res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({ error: "Internal Server Error" ,  error: error.message });
   }
 };
 

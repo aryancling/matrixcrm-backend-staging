@@ -16,7 +16,7 @@ const createQuotation = async (req, res) => {
     if (!serviceRequest) {
       return res.status(404).json({ message: "Service Request not found." });
     }
-
+   
     const quotation = new QuotationModel({ serviceRequestId, items });
     await quotation.save();
 
@@ -33,7 +33,7 @@ const createQuotation = async (req, res) => {
 // Get all Quotations
 const getAllQuotations = async (req, res) => {
   try {
-    const quotations = await QuotationModel.find().populate("serviceRequestId");
+    const quotations = await QuotationModel.find().populate("serviceRequestId").sort({ createdAt: -1 });;
     res.status(200).json({ data: quotations });
   } catch (error) {
     res
@@ -50,6 +50,30 @@ const getQuotationById = async (req, res) => {
       "serviceRequestId"
     );
 
+    if (!quotation) {
+      return res.status(404).json({ message: "Quotation not found." });
+    }
+
+    res.status(200).json({ data: quotation });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error fetching quotation.", error: error.message });
+  }
+};
+const getTasks = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find the quotation and populate both serviceRequestId and itemId
+    const quotation = await QuotationModel.findById(id)
+      .populate("serviceRequestId")
+      .populate({
+        path: "items.rcId",
+          populate: {
+            path: 'particulars'
+          }
+      })
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found." });
     }
@@ -172,6 +196,48 @@ const updateQuotationByServiceId = async (req, res) => {
   }
 };
 
+const updateItemDetails = async (req, res) => {
+  const { quotationId  } = req.params;
+  const { completionStatus, usedQty , rcId} = req.body;
+
+  try {
+    // Validate input
+    if (!completionStatus && usedQty === undefined) {
+      return res.status(400).json({
+        error: "completionStatus or usedQty must be provided.",
+      });
+    }
+
+    // Find the quotation and update the specific item
+    const updatedQuotation = await QuotationModel.findOneAndUpdate(
+      { _id: quotationId, "items.rcId": rcId },
+      {
+        $set: {
+          "items.$.completionStatus": completionStatus,
+          "items.$.usedQty": usedQty,
+        },
+      },
+      { new: true } // Return the updated document
+    );
+
+    // If no quotation or item is found, return an error
+    if (!updatedQuotation) {
+      return res.status(404).json({ message: "Quotation or item not found."  });
+    }
+
+    // Return the updated quotation
+    res.status(200).json({
+      message: "Item updated successfully.",
+      data: updatedQuotation,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "An error occurred while updating the item.",
+      error: error.message
+    });
+  }
+};
 module.exports = {
   createQuotation,
   getAllQuotations,
@@ -180,4 +246,6 @@ module.exports = {
   deleteQuotation,
   getQuotationByServiceId,
   updateQuotationByServiceId,
+  updateItemDetails,
+  getTasks
 };

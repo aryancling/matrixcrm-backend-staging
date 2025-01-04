@@ -12,25 +12,19 @@ const createCategory = async (req, res) => {
       category: newCategory,
     });
   } catch (error) {
-    sendFailedResponse(
-      res,
-      {
-        message: "Error creating category",
-      },
-      error
-    );
+    return res.status(500).json({ message: "Error Creating Category", error: error.message });
   }
 };
 
 const getAllCategories = async (req, res) => {
   try {
     const query = req?.query;
-    const categories = await CategoryModal.find(query);
+    const categories = await CategoryModal.find(query).sort({ createdAt: -1 });;
     sendSuccessResponse(res, {
       data: categories,
     });
   } catch (error) {
-    return res.status(500).json({ message: "Error fetching categories" });
+    return res.status(500).json({ message: "Error fetching categories"  , error: error.message});
   }
 };
 
@@ -42,7 +36,7 @@ const getCategoryById = async (req, res) => {
     }
     return res.status(200).json(category);
   } catch (error) {
-    return res.status(500).json({ message: "Error fetching category" });
+    return res.status(500).json({ message: "Error fetching category" , error: error.message });
   }
 };
 
@@ -61,7 +55,7 @@ const updateCategory = async (req, res) => {
       category: updatedCategory,
     });
   } catch (error) {
-    return res.status(500).json({ message: "Error updating category" });
+    return res.status(500).json({ message: "Error updating category", error: error.message });
   }
 };
 
@@ -75,7 +69,7 @@ const deleteCategory = async (req, res) => {
     }
     return res.status(200).json({ message: "Category deleted successfully" });
   } catch (error) {
-    return res.status(500).json({ message: "Error deleting Category" });
+    return res.status(500).json({ message: "Error deleting Category", error: error.message });
   }
 };
 

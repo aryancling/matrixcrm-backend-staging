@@ -7,7 +7,7 @@ const createTimeLog = async (req, res) => {
     await timeLog.save();
     res.status(201).json({ message: 'Log Created Successfully' , });
   } catch (error) {
-    res.status(400).send(error);
+    res.status(400).json({ message: `Error Creating Time Log ${error}` });
   }
 };
 
@@ -17,7 +17,7 @@ const getTimeLogsByServiceId = async (req, res) => {
     const timeLogs = await TimeLog.find({ serviceRequestId: req.params.serviceRequestId }).sort({ createdAt: -1 }); ;
     res.status(200).send(timeLogs);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json({ message: `Error Getting Time Log ${error}` });
   }
 };
 
@@ -30,7 +30,7 @@ const deleteTimeLog = async (req, res) => {
     }
     res.status(200).send(timeLog);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json({ message: `Error Deleting Time Log ${error}` , error: error.message });
   }
 };
 

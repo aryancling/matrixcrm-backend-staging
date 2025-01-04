@@ -9,14 +9,15 @@ const getUserAndBankUserById = async (req, res) => {
     const user = await UserModal.findById(id).populate({
       path: 'role',
       select: 'name permissions' 
-    }).lean();   
+    }).lean().sort({ createdAt: -1 });;   
      if (user) {
       return res.status(200).json({
         user: user ,
         userFrom: "User",
       });
     } else {
-      const BankUser = await BankUserModal.findById(id);
+      const BankUser = await BankUserModal.findById(id).populate('bankId').sort({ createdAt: -1 });
+      console.log(BankUser , 'populated bank Id')
       if (!BankUser) {
         return res.status(500).json({ message: "No User Available", error });
       }
@@ -33,8 +34,8 @@ const getUserAndBankUserById = async (req, res) => {
 // Create a new user
 const createUser = async (req, res) => {
   try {
-    const { name, mobile, role } = req.body;
-    const newUser = new UserModal({ name, mobile, role });
+    const { name, mobile, role , profileImage } = req.body;
+    const newUser = new UserModal({ name, mobile, role , profileImage});
     await newUser.save();
     return res
       .status(201)

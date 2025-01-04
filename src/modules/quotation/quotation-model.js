@@ -8,9 +8,9 @@ const QuotationSchema = new mongoose.Schema(
       required: true,
     },
     items: [{
-      itemId: {
+      rcId: {
         type: mongoose.Types.ObjectId,
-        ref: "Item",
+        ref: "Rc",
         required: true,
       },
       qty: {
@@ -22,7 +22,8 @@ const QuotationSchema = new mongoose.Schema(
         type: Number,
       },
       completionStatus: {
-        type: String,
+        type: Boolean,
+        default: false
       },
     }
     ],
