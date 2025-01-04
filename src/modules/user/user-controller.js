@@ -17,6 +17,7 @@ const getUserAndBankUserById = async (req, res) => {
       });
     } else {
       const BankUser = await BankUserModal.findById(id).populate('bankId').sort({ createdAt: -1 });
+      console.log(BankUser , 'populated bank Id')
       if (!BankUser) {
         return res.status(500).json({ message: "No User Available", error });
       }

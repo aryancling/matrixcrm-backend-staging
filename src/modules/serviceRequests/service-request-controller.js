@@ -203,7 +203,7 @@ const getServiceRequestDetails = async (req, res) => {
           },
         },
       }).sort({ createdAt: -1 });;
-console.log(serviceRequest)
+
     if (!serviceRequest) {
       return res.status(404).json({ message: "Service Request not found" });
     }
@@ -232,7 +232,7 @@ console.log(serviceRequest)
             ? "In Progress"
             : "Completed",
         description:
-          serviceRequest.quotationCreatedStatus === Status.ASSIGNED
+          serviceRequest.pmAssignedStatus === Status.ASSIGNED
             ? ""
             : `Waiting for project manager to analyze the task.`,
         assignedTo: serviceRequest.pmAssigned?.name,
