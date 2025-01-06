@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 
-
 const TimeLogSchema = new mongoose.Schema(
   {
     serviceRequestId: {
@@ -9,17 +8,22 @@ const TimeLogSchema = new mongoose.Schema(
       required: true,
     },
     user_Id: {
-        type: mongoose.Types.ObjectId,
-        ref: "User",
-    },
-    punchOutTime: {
-      type: String,
-      required: true,
-     
+      type: mongoose.Types.ObjectId,
+      ref: "User",
     },
     punchInTime: {
-      type: String,
+      type: Date,
       required: true,
+    },
+    punchOutTime: {
+      type: Date,
+      required: false,
+    },
+    punchInLocation: {
+      type: String,
+    },
+    punchOutLocation: {
+      type: String,
     },
   },
   {
@@ -29,4 +33,4 @@ const TimeLogSchema = new mongoose.Schema(
 
 const TimeLog = mongoose.model("TimeLog", TimeLogSchema);
 
-module.exports = {TimeLog };
+module.exports = { TimeLog };
