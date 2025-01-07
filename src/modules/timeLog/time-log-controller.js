@@ -1,11 +1,11 @@
 const { TimeLog } = require("./time-log-model");
-
+const moment = require("moment-timezone");
 // Create a new TimeLog
 const createTimeLog = async (req, res) => {
   try {
     const timeLog = new TimeLog(req.body);
     await timeLog.save();
-    res.status(201).json({ message: 'Log Created Successfully' , });
+    res.status(201).json({ message: "Log Created Successfully" });
   } catch (error) {
     res.status(400).json({ message: `Error Creating Time Log ${error}` });
   }
@@ -14,7 +14,9 @@ const createTimeLog = async (req, res) => {
 // Get TimeLogs by service request ID
 const getTimeLogsByServiceId = async (req, res) => {
   try {
-    const timeLogs = await TimeLog.find({ serviceRequestId: req.params.serviceRequestId }).sort({ createdAt: -1 }); ;
+    const timeLogs = await TimeLog.find({
+      serviceRequestId: req.params.serviceRequestId,
+    }).sort({ createdAt: -1 });
     res.status(200).send(timeLogs);
   } catch (error) {
     res.status(500).json({ message: `Error Getting Time Log ${error}` });
@@ -30,8 +32,76 @@ const deleteTimeLog = async (req, res) => {
     }
     res.status(200).send(timeLog);
   } catch (error) {
-    res.status(500).json({ message: `Error Deleting Time Log ${error}` , error: error.message });
+    res.status(500).json({
+      message: `Error Deleting Time Log ${error}`,
+      error: error.message,
+    });
   }
 };
 
-module.exports = { createTimeLog, getTimeLogsByServiceId, deleteTimeLog }; 
+const punchIn = async (req, res) => {
+  try {
+    const { serviceRequestId, user_Id, punchInLocation } = req.body;
+
+    // Get the start of the day in IST (Indian Standard Time)
+    const startOfDay = moment().startOf("day").locale("en-in").format();
+
+    const endOfDay = moment().endOf("day").locale("en-in").format();
+
+    const existingTimeLog = await TimeLog.findOne({
+      createdAt: { $gte: startOfDay, $lte: endOfDay },
+    });
+    if (existingTimeLog) {
+      return res
+        .status(400)
+        .json({ message: "You have already punched in today." });
+    }
+
+    const punchInTime = moment().locale("en-in").format();
+
+    const timeLog = new TimeLog({
+      serviceRequestId,
+      user_Id,
+      punchInTime,
+      punchInLocation,
+    });
+
+    await timeLog.save();
+    res.status(201).json({ message: "Punch-In Successful", timeLog });
+  } catch (error) {
+    res.status(400).json({ message: `Error Creating Punch-In ${error}` });
+  }
+};
+
+// Update Punch-Out Time
+const punchOut = async (req, res) => {
+  try {
+    const { timeLogId, punchOutLocation } = req.body;
+
+    const timeLog = await TimeLog.findById(timeLogId);
+    if (!timeLog) {
+      return res.status(404).json({ message: "Time Log not found" });
+    }
+
+    if (timeLog.punchOutTime) {
+      return res.status(400).json({ message: "You have already punched out." });
+    }
+
+    const punchOutTime = moment().locale("en-in").format();
+
+    timeLog.punchOutTime = new Date(punchOutTime);
+    timeLog.punchOutLocation = punchOutLocation;
+    await timeLog.save();
+    res.status(200).json({ message: "Punch-Out Successful", timeLog });
+  } catch (error) {
+    res.status(400).json({ message: `Error Updating Punch-Out ${error}` });
+  }
+};
+
+module.exports = {
+  createTimeLog,
+  punchIn,
+  punchOut,
+  getTimeLogsByServiceId,
+  deleteTimeLog,
+};

@@ -81,13 +81,15 @@ const getRequestById = async (req, res) => {
         populate: [
           {
             path: "items.rcId",
-            select: 'rc_number rate amount unit bankId',
+            select: "rc_number rate amount unit bankId",
             populate: {
               path: "particulars",
             },
           },
         ],
-      }).sort({ createdAt: -1 });;
+      })
+      .sort({ createdAt: -1 });
+
     if (!request) {
       return res.status(404).json({ message: "Service Request not found." });
     }
@@ -202,7 +204,8 @@ const getServiceRequestDetails = async (req, res) => {
             path: "particulars",
           },
         },
-      }).sort({ createdAt: -1 });;
+      })
+      .sort({ createdAt: -1 });
 
     if (!serviceRequest) {
       return res.status(404).json({ message: "Service Request not found" });
@@ -213,9 +216,10 @@ const getServiceRequestDetails = async (req, res) => {
         (item) => item?.completionStatus === true
       ) || false;
 
-    const lastIncompleteItem = serviceRequest.quotation?.items?.filter(
-      (item) => item.completionStatus === false
-    ) || [];
+    const lastIncompleteItem =
+      serviceRequest.quotation?.items?.filter(
+        (item) => item.completionStatus === false
+      ) || [];
 
     const steps = [
       {
@@ -262,7 +266,9 @@ const getServiceRequestDetails = async (req, res) => {
         status: areAllItemsCompleted ? "Completed" : "In Progress",
         description: areAllItemsCompleted
           ? `All tasks have been completed.`
-          : `Working on  ${lastIncompleteItem[0]?.rcId?.particulars?.itemName || "N/A"}`,
+          : `Working on  ${
+              lastIncompleteItem[0]?.rcId?.particulars?.itemName || "N/A"
+            }`,
         timestamp: serviceRequest.updatedAt,
         isCompleted: areAllItemsCompleted,
         hasAction: true,

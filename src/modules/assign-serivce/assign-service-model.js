@@ -6,20 +6,22 @@ const AssignServiceSchema = new mongoose.Schema(
     serviceId: {
       type: mongoose.Types.ObjectId,
       ref: "ServiceRequest",
-      required: true,   
+      required: true,
     },
-    items: [{
-      rcId: {
-        type: mongoose.Types.ObjectId,
-        ref: "Rc",
-        required: true,
+    items: [
+      {
+        rcId: {
+          type: mongoose.Types.ObjectId,
+          ref: "Rc",
+          required: true,
+        },
+        qty: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
       },
-      qty: {
-        type: Number,
-        required: true,
-        min: 0,
-      },
-    }],
+    ],
   },
   {
     timestamps: true,
