@@ -14,6 +14,7 @@ const QuotationsRoutes = require("../src/modules/quotation/quotation-route");
 const DiscussionBoardRoutes = require("../src/modules/discussion-board/discussion-board-routes");
 const PaymentsRoutes = require("../src/modules/payments/payment-route");
 const TimeLogRoutes = require("../src/modules/timeLog/time-log-routes");
+const PermissionsRoutes = require("../src/modules/permissions/permissions-route");
 const moduleRoutes = [
   {
     path: "/otp",
@@ -22,6 +23,10 @@ const moduleRoutes = [
   {
     path: "/payments",
     route: PaymentsRoutes,
+  },
+  {
+    path: "/permissions",
+    route: PermissionsRoutes,
   },
   {
     path: "/time-log",
