@@ -9,6 +9,7 @@ const BankUserRoutes = require("../src/modules/bank-user/bankUser-routes");
 const ItemRoutes = require("../src/modules/item/item-route");
 const ServiceRequest = require("../src/modules/serviceRequests/service-request-routes");
 const BankRoutes = require("../src/modules/bank/bank-routes");
+const ClientRoutes = require("../src/modules/client/client-routes");
 const AssignServiceRoutes = require("../src/modules/assign-serivce/assign-service-route");
 const QuotationsRoutes = require("../src/modules/quotation/quotation-route");
 const DiscussionBoardRoutes = require("../src/modules/discussion-board/discussion-board-routes");
@@ -71,6 +72,10 @@ const moduleRoutes = [
   {
     path: "/Bank",
     route: BankRoutes,
+  },
+  {
+    path: "/client",
+    route: ClientRoutes,
   },
   {
     path: "/discussion-board",

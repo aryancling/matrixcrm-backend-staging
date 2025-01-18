@@ -1,3 +1,4 @@
+const { BankUserModal } = require("../bank-user/bankUser-modal");
 const { BankModel } = require("./bank-model");
 
 // Create a new bank
@@ -11,11 +12,28 @@ async function createBank(req, res) {
   }
 }
 
-// Get all banks
 async function getAllBanks(req, res) {
   try {
-    const banks = await BankModel.find().sort({ createdAt: -1 });;
-    res.status(200).json(banks);
+    // Fetch all banks
+    const banks = await BankModel.find().sort({ createdAt: -1 });
+
+    // Fetch all admin users related to these banks
+    const adminUsers = await BankUserModal.find({
+      user_type: "admin",
+    }).populate("bankId");
+
+    // Map admin users to their respective banks
+    const banksWithAdmins = banks.map((bank) => {
+      const admin = adminUsers.find(
+        (user) => String(user.bankId?._id) === String(bank._id)
+      );
+      return {
+        ...bank.toObject(),
+        admin: admin || null, // Include admin details if available
+      };
+    });
+
+    res.status(200).json(banksWithAdmins);
   } catch (error) {
     res.status(500).json({ message: error.message, error: error.message });
   }
@@ -28,7 +46,7 @@ async function updateBank(req, res) {
       req.params.id,
       req.body,
       { new: true }
-    ).sort({ createdAt: -1 });;
+    ).sort({ createdAt: -1 });
     res.status(200).json(updatedBank);
   } catch (error) {
     res.status(400).json({ message: error.message, error: error.message });

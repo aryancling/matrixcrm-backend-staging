@@ -4,8 +4,15 @@ const mongoose = require("mongoose"); // Import mongoose for ObjectId validation
 // Create a new user
 const createBankUser = async (req, res) => {
   try {
-    const { name, mobile, user_type, reporting_to, bankId, profileImage } =
-      req.body;
+    const {
+      name,
+      mobile,
+      user_type,
+      reporting_to,
+      bankId,
+      profileImage,
+      designation,
+    } = req.body;
 
     // Validate ObjectId for bankId
     if (bankId && !mongoose.Types.ObjectId.isValid(bankId)) {
@@ -25,6 +32,7 @@ const createBankUser = async (req, res) => {
       name,
       mobile,
       user_type,
+      designation,
       reporting_to: reporting_to || undefined,
       bankId,
       profileImage,
@@ -43,7 +51,7 @@ const createBankUser = async (req, res) => {
 // Get all users
 const getAllBankUsers = async (req, res) => {
   try {
-    const users = await BankUserModal.find().sort({ createdAt: -1 });;
+    const users = await BankUserModal.find().sort({ createdAt: -1 });
     return res.status(200).json(users);
   } catch (error) {
     return res
@@ -89,7 +97,24 @@ const getBankUserById = async (req, res) => {
 const getBankUserByBankId = async (req, res) => {
   try {
     const { id: bankId } = req.params;
-    const user = await BankUserModal.find({ bankId }).sort({ createdAt: -1 });;
+    const user = await BankUserModal.find({ bankId }).sort({ createdAt: -1 });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(200).json(user);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Error fetching user", error: error.message });
+  }
+};
+const getBankUserByBankIdWithoutAdmin = async (req, res) => {
+  try {
+    const { id: bankId } = req.params;
+    const user = await BankUserModal.find({
+      bankId,
+      user_type: { $ne: "admin" },
+    }).sort({ createdAt: -1 });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -119,7 +144,7 @@ const updateBankUser = async (req, res) => {
 
     const updatedUser = await BankUserModal.findByIdAndUpdate(
       req.params.id,
-      { ...req.body, reporting_to: reporting_to || undefined }, 
+      { ...req.body, reporting_to: reporting_to || undefined },
       { new: true } // Return the updated user
     );
     if (!updatedUser) {
@@ -158,4 +183,5 @@ module.exports = {
   updateBankUser,
   deleteBankUser,
   getBankUserByBankId,
+  getBankUserByBankIdWithoutAdmin,
 };

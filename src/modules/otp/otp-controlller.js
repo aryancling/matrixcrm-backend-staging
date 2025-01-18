@@ -1,8 +1,7 @@
 const otplib = require("otplib");
 const { OtpModel } = require("./otp-modal");
-const {BankUserModal} = require('../bank-user/bankUser-modal')
-const {UserModal} = require('../user/user-modal')
-
+const { BankUserModal } = require("../bank-user/bankUser-modal");
+const { UserModal } = require("../user/user-modal");
 
 // Send OTP to mobile number
 const sendOtp = async (req, res) => {
@@ -54,7 +53,10 @@ const sendOtp = async (req, res) => {
     console.log(error);
     res
       .status(500)
-      .json({ message: "Failed to send OTP. Please try again later."  , error: error.message });
+      .json({
+        message: "Failed to send OTP. Please try again later.",
+        error: error.message,
+      });
   }
 };
 
@@ -85,27 +87,30 @@ const verifyOtp = async (req, res) => {
     let userId = null;
     let userFrom = null;
     let userRole = null;
-    const user = await UserModal.findOne({ mobile: phoneNumber }).populate('role');
+    const user = await UserModal.findOne({ mobile: phoneNumber }).populate(
+      "role"
+    );
     const bankUser = await BankUserModal.findOne({ mobile: phoneNumber });
 
     if (user) {
       userId = user._id;
-      userFrom = 'User';
-      userRole= user?.role?.name
-
+      userFrom = "User";
+      userRole = user?.role?.name;
     } else if (bankUser) {
       userId = bankUser._id;
-      userFrom = 'BankUser';
+      userFrom = "BankUser";
     }
 
-    return res.status(200).json({ 
-      message: "OTP verified successfully", 
+    return res.status(200).json({
+      message: "OTP verified successfully",
       userId,
       userFrom,
-      userRole
+      userRole,
     });
   } catch (error) {
-    return res.status(500).json({ error: "Internal Server Error" ,  error: error.message });
+    return res
+      .status(500)
+      .json({ error: "Internal Server Error", error: error.message });
   }
 };
 

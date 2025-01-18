@@ -2,22 +2,64 @@ const { UserModal } = require("./user-modal");
 
 const { BankUserModal } = require("../bank-user/bankUser-modal");
 
+const getUsersBasedOnPermissions = async (req, res) => {
+  try {
+    const { permissions, bankId } = req?.body;
+    const users = await UserModal.aggregate([
+      {
+        $addFields: {
+          bankId: {
+            $toString: "$bankId",
+          },
+        },
+      },
+
+      {
+        $lookup: {
+          from: "roles",
+          localField: "role",
+          foreignField: "_id",
+          as: "roleData",
+        },
+      },
+
+      {
+        $match: {
+          "roleData.permissions": { $all: permissions },
+          bankId,
+        },
+      },
+
+      { $unwind: "$roleData" },
+    ]);
+
+    return res.status(200).json(users);
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error });
+  }
+};
+
 const getUserAndBankUserById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const user = await UserModal.findById(id).populate({
-      path: 'role',
-      select: 'name permissions' 
-    }).lean().sort({ createdAt: -1 });;   
-     if (user) {
+    const user = await UserModal.findById(id)
+      .populate({
+        path: "role",
+        select: "name permissions",
+      })
+      .lean()
+      .sort({ createdAt: -1 });
+    if (user) {
       return res.status(200).json({
-        user: user ,
+        user: user,
         userFrom: "User",
       });
     } else {
-      const BankUser = await BankUserModal.findById(id).populate('bankId').sort({ createdAt: -1 });
-      console.log(BankUser , 'populated bank Id')
+      const BankUser = await BankUserModal.findById(id)
+        .populate("bankId")
+        .sort({ createdAt: -1 });
+      console.log(BankUser, "populated bank Id");
       if (!BankUser) {
         return res.status(500).json({ message: "No User Available", error });
       }
@@ -34,8 +76,17 @@ const getUserAndBankUserById = async (req, res) => {
 // Create a new user
 const createUser = async (req, res) => {
   try {
-    const { name, mobile, role , profileImage } = req.body;
-    const newUser = new UserModal({ name, mobile, role , profileImage});
+    const { name, mobile, role, profileImage, userType, bankId, clientId } =
+      req.body;
+    const newUser = new UserModal({
+      name,
+      mobile,
+      role,
+      profileImage,
+      userType,
+      bankId,
+      clientId,
+    });
     await newUser.save();
     return res
       .status(201)
@@ -50,12 +101,32 @@ const createUser = async (req, res) => {
 // Get all users
 const getAllUsers = async (req, res) => {
   try {
-    const users = await UserModal.find().populate('role', 'name')
+    const users = await UserModal.find().populate("role", "name");
     return res.status(200).json(users);
   } catch (error) {
     return res
       .status(500)
       .json({ message: "Error fetching users", error: error.message });
+  }
+};
+
+const getUserWithClientIdWithoutAdmin = async (req, res) => {
+  try {
+    const { id: clientId } = req.params;
+    const user = await UserModal.find({
+      clientId,
+      userType: { $ne: "admin" },
+    })
+      .populate("role")
+      .sort({ createdAt: -1 });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(200).json(user);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Error fetching user", error: error.message });
   }
 };
 
@@ -118,4 +189,6 @@ module.exports = {
   updateUser,
   deleteUser,
   getUserAndBankUserById,
+  getUserWithClientIdWithoutAdmin,
+  getUsersBasedOnPermissions,
 };
