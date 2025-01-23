@@ -1,3 +1,4 @@
+const AssignServiceModel = require("../assign-serivce/assign-service-model");
 const { ServiceRequestModal, Status } = require("./service-request-model");
 
 // Create a new Service Request
@@ -80,10 +81,11 @@ const getRequestById = async (req, res) => {
         path: "quotation",
         populate: [
           {
-            path: "items.rcId",
-            select: "rc_number rate amount unit bankId",
+            path: "rcs.rc_id",
+            select:
+              "rc_number rate unit finished_goods inventory_id bankId clientId",
             populate: {
-              path: "particulars",
+              path: "inventory_id",
             },
           },
         ],
@@ -192,32 +194,53 @@ const getServiceRequestDetails = async (req, res) => {
     const { serviceRequestId } = req.params;
 
     // Find the service request by ID
-    const serviceRequest = await ServiceRequestModal.findById(serviceRequestId)
-      .populate("pmAssigned", "name email")
-      .populate("smAssigned", "name email")
+    let serviceRequest;
+
+    const assigned = await AssignServiceModel.findOne({
+      serviceId: serviceRequestId,
+    })
       .populate({
-        path: "quotation",
+        path: "serviceId",
         populate: {
-          path: "items.rcId",
-          select: "particulars price usedQty completionStatus",
-          populate: {
-            path: "particulars",
-          },
+          path: "pmAssigned smAssigned",
         },
       })
+      .populate("inventories.inventory_id")
       .sort({ createdAt: -1 });
+
+    if (assigned) {
+      serviceRequest = assigned;
+    } else {
+      serviceRequest = await ServiceRequestModal.findById(serviceRequestId)
+        .populate("pmAssigned")
+        .populate("smAssigned")
+        .populate("bankId")
+        .populate({
+          path: "quotation",
+          populate: [
+            {
+              path: "rcs.rc_id",
+              select: "rc_number rate unit bankId clientId",
+              populate: {
+                path: "inventory_id",
+              },
+            },
+          ],
+        })
+        .sort({ createdAt: -1 });
+    }
 
     if (!serviceRequest) {
       return res.status(404).json({ message: "Service Request not found" });
     }
 
     const areAllItemsCompleted =
-      serviceRequest.quotation?.items?.every(
+      serviceRequest?.inventories?.every(
         (item) => item?.completionStatus === true
       ) || false;
 
     const lastIncompleteItem =
-      serviceRequest.quotation?.items?.filter(
+      serviceRequest?.inventories?.filter(
         (item) => item.completionStatus === false
       ) || [];
 
@@ -226,38 +249,41 @@ const getServiceRequestDetails = async (req, res) => {
         step: "Service Request Raised",
         status: "Completed",
         description: "Service request logged by support desk.",
-        timestamp: serviceRequest.createdAt,
+        timestamp: serviceRequest.serviceId?.createdAt,
         isCompleted: true,
       },
       {
         step: "Task Assigned to Project Manager",
         status:
-          serviceRequest.pmAssignedStatus === Status.PENDING
+          serviceRequest?.serviceId?.pmAssignedStatus === Status.PENDING
             ? "In Progress"
             : "Completed",
         description:
-          serviceRequest.pmAssignedStatus === Status.ASSIGNED
+          serviceRequest?.serviceId?.pmAssignedStatus === Status.ASSIGNED
             ? ""
             : `Waiting for project manager to analyze the task.`,
-        assignedTo: serviceRequest.pmAssigned?.name,
-        timestamp: serviceRequest.updatedAt,
-        isCompleted: serviceRequest.pmAssignedStatus !== Status.PENDING,
+        assignedTo: serviceRequest?.serviceId?.pmAssigned?.name,
+        timestamp: serviceRequest?.serviceId?.updatedAt,
+        isCompleted:
+          serviceRequest?.serviceId?.pmAssignedStatus !== Status.PENDING,
       },
       {
         step: "Quote prepared for the task",
         status:
-          serviceRequest.quotationCreatedStatus === Status.PENDING
+          serviceRequest?.serviceId?.quotationCreatedStatus === Status.PENDING
             ? "In Progress"
-            : serviceRequest.quotationCreatedStatus === Status.ASSIGNED
+            : serviceRequest?.serviceId?.quotationCreatedStatus ===
+              Status.ASSIGNED
             ? "Assigned"
             : "Completed",
         description:
-          serviceRequest.quotationCreatedStatus === Status.ASSIGNED
+          serviceRequest?.serviceId?.quotationCreatedStatus === Status.ASSIGNED
             ? null
             : "Waiting for service manager to prepare the quote of the task.",
-        quotationId: serviceRequest.quotation?._id,
-        timestamp: serviceRequest.quotationUpdatedAt,
-        isCompleted: serviceRequest.quotationCreatedStatus !== Status.PENDING,
+        quotationId: serviceRequest.quotation,
+        timestamp: serviceRequest?.serviceId?.quotationUpdatedAt,
+        isCompleted:
+          serviceRequest?.serviceId?.quotationCreatedStatus !== Status.PENDING,
         hasAction: true,
         actionLabel: "View Quote",
       },
@@ -266,9 +292,9 @@ const getServiceRequestDetails = async (req, res) => {
         status: areAllItemsCompleted ? "Completed" : "In Progress",
         description: areAllItemsCompleted
           ? `All tasks have been completed.`
-          : `Working on  ${
-              lastIncompleteItem[0]?.rcId?.particulars?.itemName || "N/A"
-            }`,
+          : lastIncompleteItem[0]?.inventory_id?.itemName
+          ? `Working on  ${lastIncompleteItem[0]?.inventory_id?.itemName}`
+          : "",
         timestamp: serviceRequest.updatedAt,
         isCompleted: areAllItemsCompleted,
         hasAction: true,
@@ -277,19 +303,21 @@ const getServiceRequestDetails = async (req, res) => {
       {
         step: "Task Completed",
         status:
-          serviceRequest.taskCompletionStatus === Status.COMPLETED
+          serviceRequest?.serviceId?.taskCompletionStatus === Status.COMPLETED
             ? "Completed"
             : "Waiting",
         description: areAllItemsCompleted
           ? ""
           : "Waiting for client to approve the task.",
-        timestamp: serviceRequest.updatedAt,
+        timestamp: serviceRequest?.serviceId?.updatedAt,
         isCompleted: areAllItemsCompleted,
       },
     ];
 
     return res.status(200).json({ steps });
   } catch (error) {
+    console.log(error, "Eroorrr");
+
     res
       .status(500)
       .json({ message: "Error Fetching Details", error: error.message });

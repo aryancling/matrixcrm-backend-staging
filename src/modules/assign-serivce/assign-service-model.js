@@ -8,17 +8,26 @@ const AssignServiceSchema = new mongoose.Schema(
       ref: "ServiceRequest",
       required: true,
     },
-    items: [
+    inventories: [
       {
-        rcId: {
+        inventory_id: {
           type: mongoose.Types.ObjectId,
-          ref: "Rc",
+          ref: "Item",
           required: true,
         },
         qty: {
           type: Number,
           required: true,
-          min: 0,
+        },
+        usedQty: {
+          type: Number,
+        },
+        completionStatus: {
+          type: Boolean,
+          default: false,
+        },
+        completionDate: {
+          type: Date,
         },
       },
     ],

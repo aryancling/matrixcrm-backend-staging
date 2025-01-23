@@ -17,6 +17,6 @@ router.get("/quotations", QuotationController.getAllQuotations);
 router.get("/get-quotations/:id", QuotationController.getQuotationById);
 router.get("/get-tasks/:id", QuotationController.getTasks);
 router.post("/update-quotation/:id", QuotationController.updateQuotation);
-router.post("/update-items/:quotationId", QuotationController.updateItemDetails);
+router.post("/update-items/:serviceId", QuotationController.updateItemDetails);
 router.delete("/quotations/:id", QuotationController.deleteQuotation);
 module.exports = router;

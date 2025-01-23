@@ -1,10 +1,20 @@
+const mongoose = require("mongoose");
 const ItemModel = require("./item-model");
 
 // Create a New Item
 const createItem = async (req, res) => {
   try {
-    const { itemName, category, hsnCode, gstPercentage, unit, qty, rate } =
-      req.body;
+    const {
+      itemName,
+      category,
+      hsnCode,
+      gstPercentage,
+      unit,
+      qty,
+      rate,
+      bankId,
+      clientId,
+    } = req.body;
 
     // Validate request body
     if (
@@ -27,6 +37,8 @@ const createItem = async (req, res) => {
       unit,
       qty,
       rate,
+      bankId,
+      clientId,
     });
 
     await newItem.save();
@@ -43,7 +55,10 @@ const createItem = async (req, res) => {
 // Get All Items
 const getAllItems = async (req, res) => {
   try {
-    const items = await ItemModel.find().sort({ createdAt: -1 });;
+    const query = req?.query;
+
+    const items = await ItemModel.find(query).sort({ createdAt: -1 });
+
     res.status(200).json({ data: items });
   } catch (error) {
     res

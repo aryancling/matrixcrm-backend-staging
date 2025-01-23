@@ -7,9 +7,9 @@ const QuotationSchema = new mongoose.Schema(
       ref: "ServiceRequest",
       required: true,
     },
-    items: [
+    rcs: [
       {
-        rcId: {
+        rc_id: {
           type: mongoose.Types.ObjectId,
           ref: "Rc",
           required: true,
@@ -17,17 +17,6 @@ const QuotationSchema = new mongoose.Schema(
         qty: {
           type: Number,
           required: true,
-          min: 0,
-        },
-        usedQty: {
-          type: Number,
-        },
-        completionStatus: {
-          type: Boolean,
-          default: false,
-        },
-        completionDate: {
-          type: Date,
         },
       },
     ],
