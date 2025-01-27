@@ -1,22 +1,22 @@
-const { BankUserModal } = require("./bankUser-modal");
+const { ClientUserModal } = require("./clientUser-modal");
 const mongoose = require("mongoose"); // Import mongoose for ObjectId validation
 
 // Create a new user
-const createBankUser = async (req, res) => {
+const createClientUser = async (req, res) => {
   try {
     const {
       name,
       mobile,
       user_type,
       reporting_to,
-      bankId,
+      clientId,
       profileImage,
       designation,
     } = req.body;
 
-    // Validate ObjectId for bankId
-    if (bankId && !mongoose.Types.ObjectId.isValid(bankId)) {
-      return res.status(400).json({ message: "Invalid bankId" });
+    // Validate ObjectId for clientId
+    if (clientId && !mongoose.Types.ObjectId.isValid(clientId)) {
+      return res.status(400).json({ message: "Invalid clientId" });
     }
 
     // Validate ObjectId for reporting_to only if it's provided
@@ -28,13 +28,13 @@ const createBankUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid reporting_to ID" });
     }
 
-    const newUser = new BankUserModal({
+    const newUser = new ClientUserModal({
       name,
       mobile,
       user_type,
       designation,
       reporting_to: reporting_to || undefined,
-      bankId,
+      clientId,
       profileImage,
     });
     await newUser.save();
@@ -49,9 +49,9 @@ const createBankUser = async (req, res) => {
 };
 
 // Get all users
-const getAllBankUsers = async (req, res) => {
+const getAllClientUsers = async (req, res) => {
   try {
-    const users = await BankUserModal.find().sort({ createdAt: -1 });
+    const users = await ClientUserModal.find().sort({ createdAt: -1 });
     return res.status(200).json(users);
   } catch (error) {
     return res
@@ -68,7 +68,7 @@ const getUsersByQuery = async (req, res) => {
     if (designations) {
       designation_query = { user_type: { $in: designations } };
     }
-    const users = await BankUserModal.find({
+    const users = await ClientUserModal.find({
       ...rest,
       ...designation_query,
     }).sort({ createdAt: -1 });
@@ -81,9 +81,9 @@ const getUsersByQuery = async (req, res) => {
 };
 
 // Get a single user by ID
-const getBankUserById = async (req, res) => {
+const getClientUserById = async (req, res) => {
   try {
-    const user = await BankUserModal.findById(req.params.id);
+    const user = await ClientUserModal.findById(req.params.id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -94,10 +94,12 @@ const getBankUserById = async (req, res) => {
       .json({ message: "Error fetching user", error: error.message });
   }
 };
-const getBankUserByBankId = async (req, res) => {
+const getClientUserByClientId = async (req, res) => {
   try {
-    const { id: bankId } = req.params;
-    const user = await BankUserModal.find({ bankId }).sort({ createdAt: -1 });
+    const { id: clientId } = req.params;
+    const user = await ClientUserModal.find({ clientId }).sort({
+      createdAt: -1,
+    });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -108,11 +110,11 @@ const getBankUserByBankId = async (req, res) => {
       .json({ message: "Error fetching user", error: error.message });
   }
 };
-const getBankUserByBankIdWithoutAdmin = async (req, res) => {
+const getClientUserByClientIdWithoutAdmin = async (req, res) => {
   try {
-    const { id: bankId } = req.params;
-    const user = await BankUserModal.find({
-      bankId,
+    const { id: clientId } = req.params;
+    const user = await ClientUserModal.find({
+      clientId,
       user_type: { $ne: "admin" },
     }).sort({ createdAt: -1 });
     if (!user) {
@@ -126,9 +128,9 @@ const getBankUserByBankIdWithoutAdmin = async (req, res) => {
   }
 };
 // Update user details
-const updateBankUser = async (req, res) => {
+const updateClientUser = async (req, res) => {
   try {
-    const { reporting_to, bankId } = req.body;
+    const { reporting_to, clientId } = req.body;
 
     // Validate ObjectId for reporting_to only if it's provided
     if (
@@ -138,11 +140,11 @@ const updateBankUser = async (req, res) => {
     ) {
       return res.status(400).json({ message: "Invalid reporting_to ID" });
     }
-    if (bankId && !mongoose.Types.ObjectId.isValid(bankId)) {
-      return res.status(400).json({ message: "Invalid bankId" });
+    if (clientId && !mongoose.Types.ObjectId.isValid(clientId)) {
+      return res.status(400).json({ message: "Invalid clientId" });
     }
 
-    const updatedUser = await BankUserModal.findByIdAndUpdate(
+    const updatedUser = await ClientUserModal.findByIdAndUpdate(
       req.params.id,
       { ...req.body, reporting_to: reporting_to || undefined },
       { new: true } // Return the updated user
@@ -161,9 +163,9 @@ const updateBankUser = async (req, res) => {
 };
 
 // Delete a user
-const deleteBankUser = async (req, res) => {
+const deleteClientUser = async (req, res) => {
   try {
-    const deletedUser = await BankUserModal.findByIdAndDelete(req.params.id);
+    const deletedUser = await ClientUserModal.findByIdAndDelete(req.params.id);
     if (!deletedUser) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -176,12 +178,12 @@ const deleteBankUser = async (req, res) => {
 };
 
 module.exports = {
-  createBankUser,
-  getAllBankUsers,
+  createClientUser,
+  getAllClientUsers,
   getUsersByQuery,
-  getBankUserById,
-  updateBankUser,
-  deleteBankUser,
-  getBankUserByBankId,
-  getBankUserByBankIdWithoutAdmin,
+  getClientUserById,
+  updateClientUser,
+  deleteClientUser,
+  getClientUserByClientId,
+  getClientUserByClientIdWithoutAdmin,
 };

@@ -7,8 +7,8 @@ const {
   getUserById,
   updateUser,
   deleteUser,
-  getUserAndBankUserById,
-  getUserWithClientIdWithoutAdmin,
+  getUserAndClientUserById,
+  getUserWithServicePartnerIdWithoutAdmin,
   getUsersBasedOnPermissions,
 } = require("./user-controller");
 
@@ -18,10 +18,10 @@ router.get("/get-user-by-id/:id", getUserById);
 router.post("/update-user/:id", updateUser);
 router.post("/get-users-based-on-permissions", getUsersBasedOnPermissions);
 router.delete("/delete-user/:id", deleteUser);
-router.get("/get-users/:id", getUserAndBankUserById);
+router.get("/get-users/:id", getUserAndClientUserById);
 router.get(
-  "/get-users-with-client-id-without-admin/:id",
-  getUserWithClientIdWithoutAdmin
+  "/get-users-with-service-partner-id-without-admin/:id",
+  getUserWithServicePartnerIdWithoutAdmin
 );
 
 module.exports = router;

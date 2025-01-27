@@ -8,28 +8,23 @@ const UserSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Role",
       required: function () {
-        return this.userType === "clientUser";
+        return this.userType === "servicePartnerUser";
       },
     },
     profileImage: {
       type: String,
       required: function () {
-        return this.userType === "clientUser";
+        return this.userType === "servicePartnerUser";
       },
     },
-    bankId: {
+    servicePartnerId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Bank",
-      required: true,
-    },
-    clientId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Client",
+      ref: "ServicePartner",
       required: true,
     },
     userType: {
       type: String,
-      enum: ["admin", "clientUser"],
+      enum: ["admin", "servicePartnerUser"],
       required: true,
     },
   },

@@ -3,14 +3,9 @@ const mongoose = require("mongoose");
 // Define the Item schema
 const ItemSchema = new mongoose.Schema(
   {
-    bankId: {
+    servicePartnerId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Bank",
-      required: true,
-    },
-    clientId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Client",
+      ref: "ServicePartner",
       required: true,
     },
     itemName: {

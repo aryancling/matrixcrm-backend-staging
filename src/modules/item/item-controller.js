@@ -12,8 +12,7 @@ const createItem = async (req, res) => {
       unit,
       qty,
       rate,
-      bankId,
-      clientId,
+      servicePartnerId,
     } = req.body;
 
     // Validate request body
@@ -37,8 +36,8 @@ const createItem = async (req, res) => {
       unit,
       qty,
       rate,
-      bankId,
-      clientId,
+
+      servicePartnerId,
     });
 
     await newItem.save();

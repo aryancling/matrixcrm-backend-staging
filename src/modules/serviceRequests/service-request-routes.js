@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const uploadImage = require('./upload')
+const uploadImage = require("./upload");
 const {
   createRequest,
   getAllRequests,
@@ -11,7 +11,7 @@ const {
   addAfterImagesForRequest,
   getServiceRequestDetails,
   updateQuotationApprovalStatus,
-  getServiceRequestsByBankId
+  getServiceRequestsByClientId,
 } = require("./service-request-controller");
 
 router.post("/create-Request", createRequest);
@@ -23,8 +23,7 @@ router.post("/quotation-status/:id", updateQuotationApprovalStatus);
 router.get("/get-service-details/:serviceRequestId", getServiceRequestDetails);
 router.post("/quotation/:id", addOrUpdateQuotationForRequest);
 router.post("/after-images/:id", addAfterImagesForRequest);
-router.get("/get-By-Bank-Id/:Id", getServiceRequestsByBankId);
+router.get("/get-By-Client-Id/:Id", getServiceRequestsByClientId);
 router.post("/uploadImage", uploadImage);
-
 
 module.exports = router;

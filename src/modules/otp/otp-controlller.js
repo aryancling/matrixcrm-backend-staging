@@ -1,21 +1,37 @@
 const otplib = require("otplib");
 const { OtpModel } = require("./otp-modal");
-const { BankUserModal } = require("../bank-user/bankUser-modal");
+const { ClientUserModal } = require("../client-user/clientUser-modal");
 const { UserModal } = require("../user/user-modal");
 
 // Send OTP to mobile number
 const sendOtp = async (req, res) => {
-  const { phoneNumber } = req.body;
+  const { phoneNumber, is_new } = req.body;
 
   try {
-    // Check if the phone number exists in the User collection
-    const user = await UserModal.findOne({ mobile: phoneNumber });
-    const bankUser = await BankUserModal.findOne({ mobile: phoneNumber });
+    if (!is_new) {
+      // Check if the phone number exists in the User collection
+      const user = await UserModal.findOne({ mobile: phoneNumber }).populate(
+        "servicePartnerId"
+      );
+      const clientUser = await ClientUserModal.findOne({ mobile: phoneNumber });
 
-    if (!user && !bankUser) {
-      return res
-        .status(400)
-        .json({ error: "Phone number is not registered with any user" });
+      if (!user && !clientUser) {
+        return res
+          .status(400)
+          .json({ error: "Phone number is not registered with any user" });
+      }
+
+      if (user?.servicePartnerId?.status === "pending") {
+        return res
+          .status(400)
+          .json({ error: "The company details are pending for approval" });
+      }
+      if (user?.servicePartnerId?.status === "rejected") {
+        return res.status(400).json({
+          error:
+            "Your login is restricted because company details are rejected!",
+        });
+      }
     }
 
     otplib.authenticator.options = { digits: 6 };
@@ -51,18 +67,16 @@ const sendOtp = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res
-      .status(500)
-      .json({
-        message: "Failed to send OTP. Please try again later.",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Failed to send OTP. Please try again later.",
+      error: error.message,
+    });
   }
 };
 
 // Verify OTP
 const verifyOtp = async (req, res) => {
-  const { phoneNumber, otp } = req.body;
+  const { phoneNumber, otp, is_new } = req.body;
 
   if (!phoneNumber || !otp) {
     return res.status(400).json({ error: "Phone number and OTP are required" });
@@ -84,29 +98,36 @@ const verifyOtp = async (req, res) => {
     otpRecord.otpExpires = null;
     otpRecord.otp = null;
     await otpRecord.save();
-    let userId = null;
-    let userFrom = null;
-    let userRole = null;
-    const user = await UserModal.findOne({ mobile: phoneNumber }).populate(
-      "role"
-    );
-    const bankUser = await BankUserModal.findOne({ mobile: phoneNumber });
 
-    if (user) {
-      userId = user._id;
-      userFrom = "User";
-      userRole = user?.role?.name;
-    } else if (bankUser) {
-      userId = bankUser._id;
-      userFrom = "BankUser";
+    if (!is_new) {
+      let userId = null;
+      let userFrom = null;
+      let userRole = null;
+      const user = await UserModal.findOne({ mobile: phoneNumber }).populate(
+        "role"
+      );
+      const clientUser = await ClientUserModal.findOne({ mobile: phoneNumber });
+
+      if (user) {
+        userId = user._id;
+        userFrom = "User";
+        userRole = user?.role?.name;
+      } else if (clientUser) {
+        userId = clientUser._id;
+        userFrom = "ClientUser";
+      }
+
+      return res.status(200).json({
+        message: "OTP verified successfully",
+        userId,
+        userFrom,
+        userRole,
+      });
+    } else {
+      return res.status(200).json({
+        message: "OTP verified successfully",
+      });
     }
-
-    return res.status(200).json({
-      message: "OTP verified successfully",
-      userId,
-      userFrom,
-      userRole,
-    });
   } catch (error) {
     return res
       .status(500)

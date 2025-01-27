@@ -1,4 +1,4 @@
-const { UserModal } = require("../user/user-modal");
+const { ClientUserModal } = require("../client-user/clientUser-modal");
 const { ClientModel } = require("./client-model");
 
 // Create a new client
@@ -18,10 +18,9 @@ async function getAllClients(req, res) {
     const clients = await ClientModel.find().sort({ createdAt: -1 });
 
     // Fetch all admin users related to these clients
-    const adminUsers = await UserModal.find({
-      userType: "admin",
+    const adminUsers = await ClientUserModal.find({
+      user_type: "admin",
     }).populate("clientId");
-
     // Map admin users to their respective clients
     const clientsWithAdmins = clients.map((client) => {
       const admin = adminUsers.find(

@@ -10,12 +10,12 @@ const Status = {
   REVISE: "Revise",
   UPDATED: "Updated",
   ASSIGNED: "Assigned",
-  COMPLETED: 'Completed'
+  COMPLETED: "Completed",
 };
 
 const ServiceRequestSchema = new mongoose.Schema(
   {
-    bankId: { type: mongoose.Types.ObjectId , ref: 'Bank'},
+    clientId: { type: mongoose.Types.ObjectId, ref: "Client" },
     title: { type: String, required: true },
     description: { type: String, required: true },
     serviceType: { type: String, required: true },

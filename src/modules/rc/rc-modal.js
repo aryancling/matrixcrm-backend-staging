@@ -10,8 +10,11 @@ const RcSchema = new mongoose.Schema(
     finished_goods: { type: String },
     rate: { type: Number, required: true },
     unit: { type: String, required: true },
-    bankId: { type: mongoose.Types.ObjectId, ref: "Bank" },
     clientId: { type: mongoose.Types.ObjectId, ref: "Client" },
+    servicePartnerId: {
+      type: mongoose.Types.ObjectId,
+      ref: "ServicePartner",
+    },
   },
   {
     timestamps: true,

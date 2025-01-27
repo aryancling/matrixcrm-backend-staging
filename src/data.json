@@ -2,7 +2,7 @@
   {
     "name": "matrix_user",
     "permissions": {
-      "BankUser": {
+      "ClientUser": {
         "isRead": false,
         "isWrite": false,
         "isDelete": false
@@ -22,7 +22,7 @@
         "isWrite": false,
         "isDelete": false
       },
-      "Bank": {
+      "Client": {
         "isRead": false,
         "isWrite": false,
         "isDelete": false
@@ -34,5 +34,4 @@
       }
     }
   }
-  
 ]

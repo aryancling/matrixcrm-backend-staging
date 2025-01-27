@@ -4,7 +4,8 @@ const { ServiceRequestModal, Status } = require("./service-request-model");
 // Create a new Service Request
 const createRequest = async (req, res) => {
   try {
-    const { bankId, title, description, beforeImages, serviceType } = req.body;
+    const { clientId, title, description, beforeImages, serviceType } =
+      req.body;
 
     if (!title || !description || !serviceType) {
       return res
@@ -13,7 +14,7 @@ const createRequest = async (req, res) => {
     }
 
     const newRequest = new ServiceRequestModal({
-      bankId,
+      clientId,
       title,
       description,
       beforeImages,
@@ -34,12 +35,12 @@ const createRequest = async (req, res) => {
 };
 // Get all Service Requests
 
-const getServiceRequestsByBankId = async (req, res) => {
+const getServiceRequestsByClientId = async (req, res) => {
   try {
-    const { Id: bankId } = req.params;
+    const { Id: clientId } = req.params;
 
-    // Fetch all service requests by bankId and populate related fields
-    const requests = await ServiceRequestModal.find({ bankId })
+    // Fetch all service requests by clientId and populate related fields
+    const requests = await ServiceRequestModal.find({ clientId })
       .populate("pmAssigned")
       .populate("smAssigned")
       .populate("quotation");
@@ -76,14 +77,14 @@ const getRequestById = async (req, res) => {
     const request = await ServiceRequestModal.findById(id)
       .populate("pmAssigned")
       .populate("smAssigned")
-      .populate("bankId")
+      .populate("clientId")
       .populate({
         path: "quotation",
         populate: [
           {
             path: "rcs.rc_id",
             select:
-              "rc_number rate unit finished_goods inventory_id bankId clientId",
+              "rc_number rate unit finished_goods inventory_id clientId servicePartnerId",
             populate: {
               path: "inventory_id",
             },
@@ -214,13 +215,13 @@ const getServiceRequestDetails = async (req, res) => {
       serviceRequest = await ServiceRequestModal.findById(serviceRequestId)
         .populate("pmAssigned")
         .populate("smAssigned")
-        .populate("bankId")
+        .populate("clientId")
         .populate({
           path: "quotation",
           populate: [
             {
               path: "rcs.rc_id",
-              select: "rc_number rate unit bankId clientId",
+              select: "rc_number rate unit clientId servicePartnerId",
               populate: {
                 path: "inventory_id",
               },
@@ -391,5 +392,5 @@ module.exports = {
   addAfterImagesForRequest,
   getServiceRequestDetails,
   updateQuotationApprovalStatus,
-  getServiceRequestsByBankId,
+  getServiceRequestsByClientId,
 };
