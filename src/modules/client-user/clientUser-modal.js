@@ -19,7 +19,7 @@ const ClientUserSchema = new mongoose.Schema(
     },
     reporting_to: {
       type: mongoose.Types.ObjectId,
-      ref: "Clientuser",
+      ref: "ClientUser",
     },
     clientId: { type: mongoose.Types.ObjectId, ref: "Client" },
   },

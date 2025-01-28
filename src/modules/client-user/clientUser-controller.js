@@ -66,8 +66,10 @@ const getUsersByQuery = async (req, res) => {
     let designation_query = {};
     const { designations, ...rest } = req?.body;
     if (designations) {
-      designation_query = { user_type: { $in: designations } };
+      designation_query = { designation: { $in: designations } };
     }
+    console.log(designation_query, "designation_query");
+
     const users = await ClientUserModal.find({
       ...rest,
       ...designation_query,
@@ -116,12 +118,17 @@ const getClientUserByClientIdWithoutAdmin = async (req, res) => {
     const user = await ClientUserModal.find({
       clientId,
       user_type: { $ne: "admin" },
-    }).sort({ createdAt: -1 });
+    })
+      .populate("reporting_to")
+      .sort({ createdAt: -1 });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+
     return res.status(200).json(user);
   } catch (error) {
+    console.log(error, "error");
+
     return res
       .status(500)
       .json({ message: "Error fetching user", error: error.message });

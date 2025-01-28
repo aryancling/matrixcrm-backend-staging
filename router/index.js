@@ -6,6 +6,7 @@ const RoleRoutes = require("../src/modules/role/role-routes");
 const RcRoutes = require("../src/modules/rc/rc-routes");
 const CategoryRoutes = require("../src/modules/category/category-routes");
 const ClientUserRoutes = require("../src/modules/client-user/clientUser-routes");
+const ClientServicePartnerRoutes = require("../src/modules/client-service-partner/client-service-partner-routes");
 const ItemRoutes = require("../src/modules/item/item-route");
 const ServiceRequest = require("../src/modules/serviceRequests/service-request-routes");
 const ClientRoutes = require("../src/modules/client/client-routes");
@@ -52,6 +53,10 @@ const moduleRoutes = [
   {
     path: "/Clientuser",
     route: ClientUserRoutes,
+  },
+  {
+    path: "/client-service-partner",
+    route: ClientServicePartnerRoutes,
   },
   {
     path: "/role",
