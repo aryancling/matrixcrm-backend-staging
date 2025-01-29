@@ -13,7 +13,7 @@ const {
 router.post("/create-client-service-partner", createClientServicePartner);
 router.get("/get-all-client-service-partner", getAllClientServicePartners);
 router.get(
-  "/get-all-client-service-partner-by-query",
+  "/get-client-service-partner-by-query",
   getAllClientServicePartnersByQuery
 );
 router.get(

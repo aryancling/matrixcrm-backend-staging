@@ -76,22 +76,14 @@ const getUserAndClientUserById = async (req, res) => {
 // Create a new user
 const createUser = async (req, res) => {
   try {
-    const {
-      name,
-      mobile,
-      role,
-      profileImage,
-      userType,
-      clientId,
-      servicePartnerId,
-    } = req.body;
+    const { name, mobile, role, profileImage, userType, servicePartnerId } =
+      req.body;
     const newUser = new UserModal({
       name,
       mobile,
       role,
       profileImage,
       userType,
-      clientId,
       servicePartnerId,
     });
     await newUser.save();

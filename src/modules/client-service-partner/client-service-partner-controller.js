@@ -4,30 +4,58 @@ const mongoose = require("mongoose"); // Import mongoose for ObjectId validation
 // Create a new user
 const createClientServicePartner = async (req, res) => {
   try {
-    const { clientId, servicePartnerId } = req.body;
+    const { clientId, servicePartnerIds } = req.body;
 
-    const newData = new ClientServicePartnerModal({
-      clientId,
-      servicePartnerId,
-    });
-    await newData?.save();
-    return res.status(201).json({
-      message: "Service Partner Mapping created successfully",
-      user: newUser,
-    });
+    console.log(servicePartnerIds, "servicePartnerIds");
+
+    const alreadyExists = await ClientServicePartnerModal?.distinct(
+      "servicePartnerId",
+      {
+        clientId,
+        servicePartnerId: { $in: servicePartnerIds },
+      }
+    );
+
+    if (alreadyExists?.length === servicePartnerIds?.length) {
+      return res.status(500).json({
+        message: "Service Partners already assigned",
+      });
+    } else {
+      const newData = await ClientServicePartnerModal.insertMany(
+        servicePartnerIds
+          ?.filter(
+            (servicePartnerId) =>
+              !alreadyExists
+                ?.map((id) => id?.toString())
+                ?.includes(servicePartnerId)
+          )
+          ?.map((servicePartnerId) => ({
+            servicePartnerId,
+            clientId,
+          }))
+      );
+
+      return res.status(201).json({
+        message: "Service Partner Mappings created successfully",
+        user: newData,
+      });
+    }
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Error creating user", error: error.message });
+    return res.status(500).json({
+      message: "Error creating Service Partner Mappings",
+      error: error.message,
+    });
   }
 };
 
 // Get all users
 const getAllClientServicePartners = async (req, res) => {
   try {
-    const users = await ClientServicePartnerModal.find().sort({
-      createdAt: -1,
-    });
+    const users = await ClientServicePartnerModal.find()
+      .populate(["clientId", "servicePartnerId"])
+      .sort({
+        createdAt: -1,
+      });
     return res.status(200).json(users);
   } catch (error) {
     return res
@@ -38,9 +66,11 @@ const getAllClientServicePartners = async (req, res) => {
 // Get all users
 const getAllClientServicePartnersByQuery = async (req, res) => {
   try {
-    const users = await ClientServicePartnerModal.find(req?.query).sort({
-      createdAt: -1,
-    });
+    const users = await ClientServicePartnerModal.find(req?.query)
+      .populate(["clientId", "servicePartnerId"])
+      .sort({
+        createdAt: -1,
+      });
     return res.status(200).json(users);
   } catch (error) {
     return res

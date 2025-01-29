@@ -11,6 +11,7 @@ const {
   addAfterImagesForRequest,
   getServiceRequestDetails,
   updateQuotationApprovalStatus,
+  getServiceRequestsByServicePartnerId,
   getServiceRequestsByClientId,
 } = require("./service-request-controller");
 
@@ -23,7 +24,11 @@ router.post("/quotation-status/:id", updateQuotationApprovalStatus);
 router.get("/get-service-details/:serviceRequestId", getServiceRequestDetails);
 router.post("/quotation/:id", addOrUpdateQuotationForRequest);
 router.post("/after-images/:id", addAfterImagesForRequest);
-router.get("/get-By-Client-Id/:Id", getServiceRequestsByClientId);
+router.get(
+  "/get-by-service-partner-id/:servicePartnerId",
+  getServiceRequestsByServicePartnerId
+);
+router.get("/get-by-client-id/:clientId", getServiceRequestsByClientId);
 router.post("/uploadImage", uploadImage);
 
 module.exports = router;

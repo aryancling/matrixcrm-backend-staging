@@ -4,8 +4,14 @@ const { ServiceRequestModal, Status } = require("./service-request-model");
 // Create a new Service Request
 const createRequest = async (req, res) => {
   try {
-    const { clientId, title, description, beforeImages, serviceType } =
-      req.body;
+    const {
+      clientId,
+      servicePartnerId,
+      title,
+      description,
+      beforeImages,
+      serviceType,
+    } = req.body;
 
     if (!title || !description || !serviceType) {
       return res
@@ -15,6 +21,7 @@ const createRequest = async (req, res) => {
 
     const newRequest = new ServiceRequestModal({
       clientId,
+      servicePartnerId,
       title,
       description,
       beforeImages,
@@ -35,9 +42,30 @@ const createRequest = async (req, res) => {
 };
 // Get all Service Requests
 
+const getServiceRequestsByServicePartnerId = async (req, res) => {
+  try {
+    const servicePartnerId = req.params?.servicePartnerId;
+
+    // Fetch all service requests by clientId and populate related fields
+    const requests = await ServiceRequestModal.find({ servicePartnerId })
+      .populate("pmAssigned")
+      .populate("smAssigned")
+      .populate("quotation");
+
+    // Respond with the fetched data
+    res.status(200).json({ data: requests });
+  } catch (error) {
+    // Handle errors
+    res.status(500).json({
+      message: "Error fetching Service Requests.",
+      error: error.message,
+    });
+  }
+};
+
 const getServiceRequestsByClientId = async (req, res) => {
   try {
-    const { Id: clientId } = req.params;
+    const clientId = req.params?.clientId;
 
     // Fetch all service requests by clientId and populate related fields
     const requests = await ServiceRequestModal.find({ clientId })
@@ -392,5 +420,6 @@ module.exports = {
   addAfterImagesForRequest,
   getServiceRequestDetails,
   updateQuotationApprovalStatus,
+  getServiceRequestsByServicePartnerId,
   getServiceRequestsByClientId,
 };
