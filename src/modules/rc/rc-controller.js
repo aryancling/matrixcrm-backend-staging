@@ -18,11 +18,42 @@ const createRc = async (req, res) => {
   }
 };
 
+const searchRCs = async (req, res) => {
+  try {
+    const { search } = req?.query;
+
+    if (!search) {
+      return res.status(400).json({ message: "Query parameter is required" });
+    }
+
+    // Search RCs by `finished_goods` and `itemName` (from Inventory)
+    const rcs = await RcModal.find({
+      $or: [
+        { finished_goods: { $regex: search, $options: "i" } }, // Case-insensitive match for finished_goods
+        { inventory_id: { $exists: true } }, // Ensure inventory exists
+      ],
+    }).populate({
+      path: "inventory_id",
+      match: { itemName: { $regex: search, $options: "i" } }, // Search in Inventory name
+    });
+
+    // Filter out RCs where inventory_id does not match
+    const filteredRcs = rcs.filter((rc) => rc.inventory_id !== null);
+
+    res.status(200).json(filteredRcs);
+  } catch (error) {
+    console.error("Error in search API:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
 const getAllRcs = async (req, res) => {
   try {
     const query = req?.query;
     const rcs = await RcModal.find(query)
       .populate("inventory_id")
+      .populate("clientId")
+      .populate("servicePartnerId")
       .sort({ createdAt: -1 });
     sendSuccessResponse(res, {
       data: rcs,
@@ -88,4 +119,5 @@ module.exports = {
   getRcById,
   updateRc,
   deleteRc,
+  searchRCs,
 };

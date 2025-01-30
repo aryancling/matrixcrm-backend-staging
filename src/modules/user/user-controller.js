@@ -1,6 +1,7 @@
 const { UserModal } = require("./user-modal");
 
 const { ClientUserModal } = require("../client-user/clientUser-modal");
+const { sendFailedResponse } = require("../../utils/response");
 
 const getUsersBasedOnPermissions = async (req, res) => {
   try {
@@ -35,7 +36,8 @@ const getUsersBasedOnPermissions = async (req, res) => {
 
     return res.status(200).json(users);
   } catch (error) {
-    return res.status(500).json({ message: "Server error", error });
+    sendFailedResponse(res, {}, error);
+    // return res.status(500).json({ message: "Server error", error });
   }
 };
 
@@ -91,9 +93,10 @@ const createUser = async (req, res) => {
       .status(201)
       .json({ message: "User created successfully", user: newUser });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Error creating user", error: error.message });
+    sendFailedResponse(res, {}, error);
+    // return res
+    //   .status(500)
+    //   .json({ message: "Error creating user", error: error.message });
   }
 };
 
