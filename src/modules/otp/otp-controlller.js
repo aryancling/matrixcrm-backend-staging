@@ -21,12 +21,12 @@ const sendOtp = async (req, res) => {
           .json({ error: "Phone number is not registered with any user" });
       }
 
-      if (user?.servicePartnerId?.status === "pending") {
+      if (user?.servicePartnerId?.status === "Pending") {
         return res
           .status(400)
           .json({ error: "The company details are pending for approval" });
       }
-      if (user?.servicePartnerId?.status === "rejected") {
+      if (user?.servicePartnerId?.status === "Rejected") {
         return res.status(400).json({
           error:
             "Your login is restricted because company details are rejected!",
