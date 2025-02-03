@@ -1,4 +1,6 @@
+const { generateRequestNumber } = require("../../utils/helpers");
 const AssignServiceModel = require("../assign-serivce/assign-service-model");
+const { ClientModel } = require("../client/client-model");
 const { ServiceRequestModal, Status } = require("./service-request-model");
 
 // Create a new Service Request
@@ -19,6 +21,10 @@ const createRequest = async (req, res) => {
         .json({ message: "All required fields must be provided." });
     }
 
+    const clientName = await ClientModel.findOne({ _id: clientId }).select(
+      "client_name"
+    );
+
     const newRequest = new ServiceRequestModal({
       clientId,
       servicePartnerId,
@@ -26,6 +32,7 @@ const createRequest = async (req, res) => {
       description,
       beforeImages,
       serviceType,
+      serviceNumber: generateRequestNumber("SR", clientName?.client_name),
     });
 
     await newRequest.save();
@@ -106,16 +113,18 @@ const getRequestById = async (req, res) => {
       .populate("pmAssigned")
       .populate("smAssigned")
       .populate("clientId")
+      .populate("servicePartnerId")
       .populate({
         path: "quotation",
         populate: [
           {
             path: "rcs.rc_id",
-            select:
-              "rc_number rate unit finished_goods inventory_id clientId servicePartnerId",
             populate: {
               path: "inventory_id",
             },
+          },
+          {
+            path: "non_rcs.inventory_id",
           },
         ],
       })
@@ -241,6 +250,7 @@ const getServiceRequestDetails = async (req, res) => {
       serviceRequest = assigned;
     } else {
       serviceRequest = await ServiceRequestModal.findById(serviceRequestId)
+
         .populate("pmAssigned")
         .populate("smAssigned")
         .populate("clientId")
@@ -249,10 +259,12 @@ const getServiceRequestDetails = async (req, res) => {
           populate: [
             {
               path: "rcs.rc_id",
-              select: "rc_number rate unit clientId servicePartnerId",
               populate: {
                 path: "inventory_id",
               },
+            },
+            {
+              path: "non_rcs.inventory_id",
             },
           ],
         })
@@ -278,41 +290,49 @@ const getServiceRequestDetails = async (req, res) => {
         step: "Service Request Raised",
         status: "Completed",
         description: "Service request logged by support desk.",
-        timestamp: serviceRequest.serviceId?.createdAt,
+        timestamp: (serviceRequest?.serviceId || serviceRequest)?.createdAt,
         isCompleted: true,
       },
       {
         step: "Task Assigned to Project Manager",
         status:
-          serviceRequest?.serviceId?.pmAssignedStatus === Status.PENDING
+          (serviceRequest?.serviceId || serviceRequest)?.pmAssignedStatus ===
+          Status.PENDING
             ? "In Progress"
             : "Completed",
         description:
-          serviceRequest?.serviceId?.pmAssignedStatus === Status.ASSIGNED
+          (serviceRequest?.serviceId || serviceRequest)?.pmAssignedStatus ===
+          Status.ASSIGNED
             ? ""
             : `Waiting for project manager to analyze the task.`,
-        assignedTo: serviceRequest?.serviceId?.pmAssigned?.name,
-        timestamp: serviceRequest?.serviceId?.updatedAt,
+        assignedTo: (serviceRequest?.serviceId || serviceRequest)?.pmAssigned
+          ?.name,
+        timestamp: (serviceRequest?.serviceId || serviceRequest)?.updatedAt,
         isCompleted:
-          serviceRequest?.serviceId?.pmAssignedStatus !== Status.PENDING,
+          (serviceRequest?.serviceId || serviceRequest)?.pmAssignedStatus !==
+          Status.PENDING,
       },
       {
         step: "Quote prepared for the task",
         status:
-          serviceRequest?.serviceId?.quotationCreatedStatus === Status.PENDING
+          (serviceRequest?.serviceId || serviceRequest)
+            ?.quotationCreatedStatus === Status.PENDING
             ? "In Progress"
-            : serviceRequest?.serviceId?.quotationCreatedStatus ===
-              Status.ASSIGNED
+            : (serviceRequest?.serviceId || serviceRequest)
+                ?.quotationCreatedStatus === Status.ASSIGNED
             ? "Assigned"
             : "Completed",
         description:
-          serviceRequest?.serviceId?.quotationCreatedStatus === Status.ASSIGNED
+          (serviceRequest?.serviceId || serviceRequest)
+            ?.quotationCreatedStatus === Status.ASSIGNED
             ? null
             : "Waiting for service manager to prepare the quote of the task.",
         quotationId: serviceRequest.quotation,
-        timestamp: serviceRequest?.serviceId?.quotationUpdatedAt,
+        timestamp: (serviceRequest?.serviceId || serviceRequest)
+          ?.quotationUpdatedAt,
         isCompleted:
-          serviceRequest?.serviceId?.quotationCreatedStatus !== Status.PENDING,
+          (serviceRequest?.serviceId || serviceRequest)
+            ?.quotationCreatedStatus !== Status.PENDING,
         hasAction: true,
         actionLabel: "View Quote",
       },
@@ -332,13 +352,14 @@ const getServiceRequestDetails = async (req, res) => {
       {
         step: "Task Completed",
         status:
-          serviceRequest?.serviceId?.taskCompletionStatus === Status.COMPLETED
+          (serviceRequest?.serviceId || serviceRequest)
+            ?.taskCompletionStatus === Status.COMPLETED
             ? "Completed"
             : "Waiting",
         description: areAllItemsCompleted
           ? ""
           : "Waiting for client to approve the task.",
-        timestamp: serviceRequest?.serviceId?.updatedAt,
+        timestamp: (serviceRequest?.serviceId || serviceRequest)?.updatedAt,
         isCompleted: areAllItemsCompleted,
       },
     ];

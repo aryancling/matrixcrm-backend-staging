@@ -3,24 +3,35 @@ const {
   ServiceRequestModal,
 } = require("../serviceRequests/service-request-model");
 const AssignServiceModel = require("../assign-serivce/assign-service-model");
+const { generateRequestNumber } = require("../../utils/helpers");
+
 const createQuotation = async (req, res) => {
   try {
-    const { serviceRequestId, rcs } = req.body;
-
-    // Validate required fields
-    if (!serviceRequestId || !rcs || rcs.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "ServiceRequestId and rcs are required." });
-    }
+    const { serviceRequestId, rcs, non_rcs, total_amount, cgst, sgst, igst } =
+      req.body;
 
     // Check if Service Request exists
-    const serviceRequest = await ServiceRequestModal.findById(serviceRequestId);
+    const serviceRequest = await ServiceRequestModal.findById(
+      serviceRequestId
+    ).populate("clientId");
+
     if (!serviceRequest) {
       return res.status(404).json({ message: "Service Request not found." });
     }
 
-    const quotation = new QuotationModel({ serviceRequestId, rcs });
+    const quotation = new QuotationModel({
+      serviceRequestId,
+      rcs,
+      non_rcs,
+      total_amount,
+      cgst,
+      sgst,
+      igst,
+      quotationNumber: generateRequestNumber(
+        "QT",
+        serviceRequest?.clientId?.client_name
+      ),
+    });
     await quotation.save();
 
     res
@@ -51,9 +62,21 @@ const getAllQuotations = async (req, res) => {
 const getQuotationById = async (req, res) => {
   try {
     const { id } = req.params;
-    const quotation = await QuotationModel.findById(id).populate(
-      "serviceRequestId"
-    );
+    const quotation = await QuotationModel.findById(id)
+      .populate({
+        path: "serviceRequestId",
+      })
+      .populate([
+        {
+          path: "rcs.rc_id",
+          populate: {
+            path: "inventory_id",
+          },
+        },
+        {
+          path: "non_rcs.inventory_id",
+        },
+      ]);
 
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found." });
@@ -92,17 +115,10 @@ const getTasks = async (req, res) => {
 const updateQuotation = async (req, res) => {
   try {
     const { id } = req.params;
-    const { rcs } = req.body;
-
-    if (!rcs || rcs.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "RCs are required for updating the quotation." });
-    }
 
     const updatedQuotation = await QuotationModel.findByIdAndUpdate(
       id,
-      { rcs },
+      req?.body,
       { new: true }
     );
 

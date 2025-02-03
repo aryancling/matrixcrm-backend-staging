@@ -2,12 +2,12 @@ const mongoose = require("mongoose");
 
 const ServicePartnerSchema = new mongoose.Schema(
   {
-    company_name: { type: String, required: true, unique: true },
-    name: { type: String, required: true, unique: true },
+    company_name: { type: String, required: true },
+    name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     mobile: { type: String, required: true, unique: true },
-    city: { type: String, required: true, unique: true },
-    state: { type: String, required: true, unique: true },
+    city: { type: String, required: true },
+    state: { type: String, required: true },
     address: { type: String },
     status: {
       type: String,

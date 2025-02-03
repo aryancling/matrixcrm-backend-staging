@@ -2,6 +2,7 @@ const {
   sendSuccessResponse,
   sendFailedResponse,
 } = require("../../utils/response");
+const ItemModel = require("../item/item-model");
 const { RcModal } = require("./rc-modal");
 
 const createRc = async (req, res) => {
@@ -20,27 +21,41 @@ const createRc = async (req, res) => {
 
 const searchRCs = async (req, res) => {
   try {
-    const { search } = req?.query;
+    const { search, ...rest } = req?.query;
 
     if (!search) {
       return res.status(400).json({ message: "Query parameter is required" });
     }
 
-    // Search RCs by `finished_goods` and `itemName` (from Inventory)
+    // Search RCs by `finished_goods` and `itemName` from Inventory
     const rcs = await RcModal.find({
       $or: [
-        { finished_goods: { $regex: search, $options: "i" } }, // Case-insensitive match for finished_goods
+        { finished_goods: { $regex: search, $options: "i" } }, // Search finished_goods
         { inventory_id: { $exists: true } }, // Ensure inventory exists
       ],
+      ...rest,
     }).populate({
       path: "inventory_id",
       match: { itemName: { $regex: search, $options: "i" } }, // Search in Inventory name
     });
 
     // Filter out RCs where inventory_id does not match
-    const filteredRcs = rcs.filter((rc) => rc.inventory_id !== null);
+    let filteredRcs = rcs.filter((rc) => rc.inventory_id !== null);
 
-    res.status(200).json(filteredRcs);
+    // If no RCs are found, search directly in Inventory
+    if (filteredRcs.length === 0) {
+      const inventoryItems = await ItemModel.find({
+        itemName: { $regex: search, $options: "i" },
+      });
+
+      if (inventoryItems.length > 0) {
+        return res
+          .status(200)
+          .json({ source: "inventory", data: inventoryItems });
+      }
+    }
+
+    res.status(200).json({ source: "rcs", data: filteredRcs });
   } catch (error) {
     console.error("Error in search API:", error);
     res.status(500).json({ message: "Server error", error });
@@ -67,7 +82,10 @@ const getAllRcs = async (req, res) => {
 
 const getRcById = async (req, res) => {
   try {
-    const rc = await RcModal.findById(req.params.id);
+    const rc = await RcModal.findById(req.params.id).populate([
+      "inventory_id",
+      "clientId",
+    ]);
     if (!rc) {
       return res.status(404).json({ message: "Rc not found" });
     }

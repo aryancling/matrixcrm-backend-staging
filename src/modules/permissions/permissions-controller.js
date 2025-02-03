@@ -21,6 +21,7 @@ async function getAllPermissions(req, res) {
           "assign_to_product_manager",
           "assign_to_service_manager",
         ],
+        after_photos: ["add", "view"],
       },
     });
   } catch (error) {

@@ -46,10 +46,7 @@ const getUserAndClientUserById = async (req, res) => {
 
   try {
     const user = await UserModal.findById(id)
-      .populate({
-        path: "role",
-        select: "name permissions",
-      })
+      .populate(["role", "servicePartnerId"])
       .lean()
       .sort({ createdAt: -1 });
     if (user) {
@@ -59,7 +56,7 @@ const getUserAndClientUserById = async (req, res) => {
       });
     } else {
       const ClientUser = await ClientUserModal.findById(id)
-        .populate("clientId")
+        .populate(["clientId", "reporting_to"])
         .sort({ createdAt: -1 });
       console.log(ClientUser, "populated client Id");
       if (!ClientUser) {

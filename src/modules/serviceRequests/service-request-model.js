@@ -19,6 +19,7 @@ const ServiceRequestSchema = new mongoose.Schema(
     servicePartnerId: { type: mongoose.Types.ObjectId, ref: "ServicePartner" },
     title: { type: String, required: true },
     description: { type: String, required: true },
+    serviceNumber: { type: String, required: true, unique: true },
     serviceType: { type: String, required: true },
     beforeImages: { type: [String] },
     afterImages: { type: [String] },

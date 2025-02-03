@@ -103,10 +103,13 @@ const verifyOtp = async (req, res) => {
       let userId = null;
       let userFrom = null;
       let userRole = null;
-      const user = await UserModal.findOne({ mobile: phoneNumber }).populate(
-        "role"
-      );
-      const clientUser = await ClientUserModal.findOne({ mobile: phoneNumber });
+      const user = await UserModal.findOne({ mobile: phoneNumber }).populate([
+        "role",
+        "servicePartnerId",
+      ]);
+      const clientUser = await ClientUserModal.findOne({
+        mobile: phoneNumber,
+      }).populate(["clientId", "reporting_to"]);
 
       if (user) {
         userId = user._id;
