@@ -28,6 +28,7 @@ const AssignServiceSchema = new mongoose.Schema(
         },
         completionDate: {
           type: Date,
+          default: new Date(),
         },
       },
     ],

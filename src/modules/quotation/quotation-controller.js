@@ -232,6 +232,7 @@ const updateItemDetails = async (req, res) => {
       {
         $set: {
           "inventories.$.completionStatus": completionStatus,
+          "inventories.$.completionDate": new Date(),
           "inventories.$.usedQty": usedQty,
         },
       },
