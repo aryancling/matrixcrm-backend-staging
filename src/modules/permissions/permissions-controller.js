@@ -7,22 +7,23 @@ async function getAllPermissions(req, res) {
   try {
     sendSuccessResponse(res, {
       data: {
-        category: ["add", "update", "delete", "get"],
-        inventory: ["add", "update", "delete", "assign", "get"],
-        quotation: ["add", "update", "delete", "get"],
-        task: ["add", "update", "delete", "get"],
-        payment: ["request", "update", "delete", "get"],
-        time_log: ["add", "update", "delete", "get"],
-        rc: ["add", "update", "delete", "get"],
+        category: ["add", "update", "delete", "view"],
+        inventory: ["add", "update", "delete", "assign", "view"],
+        quotation: ["add", "update", "delete", "view"],
+        task: ["add", "update", "delete", "view"],
+        payment: ["request", "update", "delete", "view"],
+        time_log: ["add", "update", "delete", "view"],
+        rc: ["add", "update", "delete", "view"],
+        supplier: ["add", "update", "delete", "view"],
         service_request: [
           "add",
-          "get_all",
+          "view_all",
           "view_details",
           "assign_to_product_manager",
           "assign_to_service_manager",
         ],
         after_photo: ["add", "view"],
-        expense: ["add", "update", "delete", "get"],
+        expense: ["add", "update", "delete", "view"],
       },
     });
   } catch (error) {
