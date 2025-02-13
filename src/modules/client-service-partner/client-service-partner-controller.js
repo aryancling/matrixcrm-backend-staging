@@ -18,7 +18,7 @@ const createClientServicePartner = async (req, res) => {
 
     if (alreadyExists?.length === servicePartnerIds?.length) {
       return res.status(500).json({
-        message: "Service Partners already assigned",
+        message: "Service Partner already assigned",
       });
     } else {
       const newData = await ClientServicePartnerModal.insertMany(

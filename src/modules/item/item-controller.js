@@ -15,19 +15,6 @@ const createItem = async (req, res) => {
       servicePartnerId,
     } = req.body;
 
-    // Validate request body
-    if (
-      !itemName ||
-      !category ||
-      !hsnCode ||
-      gstPercentage === undefined ||
-      !unit ||
-      qty === undefined ||
-      rate === undefined
-    ) {
-      return res.status(400).json({ message: "All fields are required." });
-    }
-
     const newItem = new ItemModel({
       itemName,
       category,

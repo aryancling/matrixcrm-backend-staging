@@ -36,7 +36,7 @@ const ItemSchema = new mongoose.Schema(
     },
     qty: {
       type: Number,
-      required: true,
+      // required: true,
       min: 0,
     },
     rate: {

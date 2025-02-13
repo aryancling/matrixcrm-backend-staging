@@ -1,3 +1,4 @@
+const InventoryModel = require("../inventory/inventory-model");
 const ItemModel = require("../item/item-model");
 const { RcModal } = require("../rc/rc-modal");
 const AssignServiceModel = require("./assign-service-model");
@@ -15,7 +16,9 @@ const createAssignment = async (req, res) => {
     }
 
     // Check if the service ID already has an assignment
-    const existingAssignment = await AssignServiceModel.findOne({ serviceId });
+    const existingAssignment = await AssignServiceModel.findOne({
+      serviceId,
+    }).populate("serviceId");
     if (existingAssignment) {
       return res.status(400).json({
         message:
@@ -31,14 +34,22 @@ const createAssignment = async (req, res) => {
           .status(404)
           .json({ message: `Item with ID ${item?.inventory_id} not found.` });
       }
-      if ((itemModel?.usedqty || 0) + item?.qty > itemModel?.qty) {
-        return res
-          .status(400)
-          .json({ message: "Cannot exceed the available quantity." });
-      }
+      // if ((itemModel?.usedqty || 0) + item?.qty > itemModel?.qty) {
+      //   return res
+      //     .status(400)
+      //     .json({ message: "Cannot exceed the available quantity." });
+      // }
       // Update usedqty
       itemModel.usedqty = (itemModel.usedqty || 0) + item.qty;
       await itemModel.save();
+      await InventoryModel.create({
+        servicePartnerId: itemModel?.servicePartnerId,
+        inventory_id: item?.inventory_id,
+        qty_out: item?.qty,
+        qty_in: 0,
+        remarks: `Used ${item?.qty} Quantity for Service: ${existingAssignment?.serviceId?.serviceNumber}`,
+        type: "inventory_out",
+      });
     }
 
     // Create the assignment

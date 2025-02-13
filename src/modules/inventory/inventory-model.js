@@ -32,6 +32,7 @@ const InventorySchema = new mongoose.Schema(
       type: String,
       enum: ["inventory_in", "inventory_out"],
     },
+    remarks: String,
   },
   {
     timestamps: true,
