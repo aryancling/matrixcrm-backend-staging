@@ -65,6 +65,9 @@ const getQuotationById = async (req, res) => {
     const quotation = await QuotationModel.findById(id)
       .populate({
         path: "serviceRequestId",
+        populate: {
+          path: "branch_id",
+        },
       })
       .populate([
         {

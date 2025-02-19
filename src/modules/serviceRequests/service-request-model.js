@@ -18,6 +18,8 @@ const ServiceRequestSchema = new mongoose.Schema(
     clientId: { type: mongoose.Types.ObjectId, ref: "Client" },
     servicePartnerId: { type: mongoose.Types.ObjectId, ref: "ServicePartner" },
     title: { type: String, required: true },
+    cost_code: { type: String, required: true },
+    cost_name: { type: String, required: true },
     description: { type: String, required: true },
     serviceNumber: { type: String, required: true, unique: true },
     serviceType: { type: String, required: true },
@@ -30,6 +32,10 @@ const ServiceRequestSchema = new mongoose.Schema(
     quotation: {
       type: mongoose.Types.ObjectId,
       ref: "Quotation",
+    },
+    branch_id: {
+      type: mongoose.Types.ObjectId,
+      ref: "Branch",
     },
     quotationCreatedStatus: {
       type: String,

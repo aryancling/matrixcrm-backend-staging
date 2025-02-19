@@ -13,6 +13,9 @@ const createRequest = async (req, res) => {
       description,
       beforeImages,
       serviceType,
+      cost_code,
+      cost_name,
+      branch_id,
     } = req.body;
 
     if (!title || !description || !serviceType) {
@@ -32,6 +35,9 @@ const createRequest = async (req, res) => {
       description,
       beforeImages,
       serviceType,
+      cost_code,
+      cost_name,
+      branch_id,
       serviceNumber: generateRequestNumber("SR", clientName?.client_name),
     });
 
@@ -57,7 +63,8 @@ const getServiceRequestsByServicePartnerId = async (req, res) => {
     const requests = await ServiceRequestModal.find({ servicePartnerId })
       .populate("pmAssigned")
       .populate("smAssigned")
-      .populate("quotation");
+      .populate("quotation")
+      .populate("branch_id");
 
     // Respond with the fetched data
     res.status(200).json({ data: requests });
@@ -78,7 +85,8 @@ const getServiceRequestsByClientId = async (req, res) => {
     const requests = await ServiceRequestModal.find({ clientId })
       .populate("pmAssigned")
       .populate("smAssigned")
-      .populate("quotation");
+      .populate("quotation")
+      .populate("branch_id");
 
     // Respond with the fetched data
     res.status(200).json({ data: requests });
@@ -114,6 +122,7 @@ const getRequestById = async (req, res) => {
       .populate("smAssigned")
       .populate("clientId")
       .populate("servicePartnerId")
+      .populate("branch_id")
       .populate({
         path: "quotation",
         populate: [
@@ -135,6 +144,8 @@ const getRequestById = async (req, res) => {
     }
     res.status(200).json({ data: request });
   } catch (error) {
+    console.log(error, "Erooor");
+
     res.status(500).json({
       message: "Error fetching Service Request.",
       error: error.message,
@@ -240,11 +251,13 @@ const getServiceRequestDetails = async (req, res) => {
       .populate({
         path: "serviceId",
         populate: {
-          path: "pmAssigned smAssigned",
+          path: "pmAssigned smAssigned branch_id",
         },
       })
       .populate("inventories.inventory_id")
       .sort({ createdAt: -1 });
+
+    console.log(assigned, "assignedassigned");
 
     if (assigned) {
       serviceRequest = assigned;
@@ -254,6 +267,7 @@ const getServiceRequestDetails = async (req, res) => {
         .populate("pmAssigned")
         .populate("smAssigned")
         .populate("clientId")
+        .populate("branch_id")
         .populate({
           path: "quotation",
           populate: [
@@ -270,6 +284,8 @@ const getServiceRequestDetails = async (req, res) => {
         })
         .sort({ createdAt: -1 });
     }
+
+    console.log(serviceRequest, "serviceRequestserviceRequest");
 
     if (!serviceRequest) {
       return res.status(404).json({ message: "Service Request not found" });

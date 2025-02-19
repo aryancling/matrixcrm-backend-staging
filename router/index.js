@@ -12,6 +12,7 @@ const ItemRoutes = require("../src/modules/item/item-route");
 const InventoryRoutes = require("../src/modules/inventory/inventory-route");
 const ServiceRequest = require("../src/modules/serviceRequests/service-request-routes");
 const ClientRoutes = require("../src/modules/client/client-routes");
+const BranchRoutes = require("../src/modules/branch/branch-routes");
 const ServicePartnerRoutes = require("../src/modules/service-partner/service-partner-routes");
 const AssignServiceRoutes = require("../src/modules/assign-serivce/assign-service-route");
 const QuotationsRoutes = require("../src/modules/quotation/quotation-route");
@@ -80,6 +81,10 @@ const moduleRoutes = [
   {
     path: "/category",
     route: CategoryRoutes,
+  },
+  {
+    path: "/branch",
+    route: BranchRoutes,
   },
   {
     path: "/supplier",

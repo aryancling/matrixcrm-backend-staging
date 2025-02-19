@@ -16,7 +16,7 @@ async function getAllPermissions(req, res) {
         rc: ["add", "update", "delete", "view"],
         supplier: ["add", "update", "delete", "view"],
         service_request: [
-          "add",
+          "raise",
           "view_all",
           "view_details",
           "assign_to_product_manager",
