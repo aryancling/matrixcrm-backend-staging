@@ -1,4 +1,3 @@
-const mongoose = require("mongoose");
 const ItemModel = require("./item-model");
 
 // Create a New Item
@@ -35,6 +34,26 @@ const createItem = async (req, res) => {
     res
       .status(500)
       .json({ message: "Error creating item.", error: error.message });
+  }
+};
+
+const searchItems = async (req, res) => {
+  try {
+    const { search, ...rest } = req?.query;
+
+    if (!search) {
+      return res.status(400).json({ message: "Query parameter is required" });
+    }
+
+    const inventoryItems = await ItemModel.find({
+      itemName: { $regex: search, $options: "i" },
+      ...rest,
+    });
+
+    return res.status(200).json({ source: "inventory", data: inventoryItems });
+  } catch (error) {
+    console.error("Error in search API:", error);
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
@@ -113,6 +132,7 @@ const deleteItemById = async (req, res) => {
 };
 
 module.exports = {
+  searchItems,
   createItem,
   getAllItems,
   getItemById,
