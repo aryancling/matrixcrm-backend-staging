@@ -4,6 +4,7 @@ const InventoryController = require("./inventory-controller");
 
 router.post("/create-inventory", InventoryController.createInventory);
 router.get("/get-inventories", InventoryController.getAllInventories);
+router.get("/get-available-quantity", InventoryController.getAvailableQuantity);
 router.get(
   "/get-inventories-by-id/:inventoryId",
   InventoryController.getInventoryById

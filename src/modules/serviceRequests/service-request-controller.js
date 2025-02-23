@@ -101,7 +101,7 @@ const getServiceRequestsByClientId = async (req, res) => {
 
 const getAllRequests = async (req, res) => {
   try {
-    const requests = await ServiceRequestModal.find().populate(
+    const requests = await ServiceRequestModal.find(req?.query).populate(
       "pmAssigned smAssigned quotation"
     );
     res.status(200).json({ data: requests });

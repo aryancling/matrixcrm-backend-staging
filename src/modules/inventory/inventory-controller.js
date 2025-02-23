@@ -1,14 +1,53 @@
+const AssignServiceModel = require("../assign-serivce/assign-service-model");
 const InventoryModel = require("./inventory-model");
 
 // Create a New Inventory
 const createInventory = async (req, res) => {
   try {
-    const newInventory = new InventoryModel(req?.body);
+    const newInventories = await InventoryModel.insertMany(
+      req?.body?.inventories
+    );
 
-    await newInventory.save();
-    res
-      .status(201)
-      .json({ message: "Inventory created successfully.", data: newInventory });
+    const inventory_out_to_issue = req?.body?.inventories?.filter(
+      (inventory) =>
+        inventory?.record_type === "inventory_out" &&
+        inventory?.inventory_type === "Issued"
+    );
+
+    let service_id_mapped_inventories = {};
+
+    inventory_out_to_issue?.forEach((inventory) => {
+      if (service_id_mapped_inventories?.[inventory?.service_request]) {
+        service_id_mapped_inventories?.[inventory?.service_request]?.push({
+          inventory_id: inventory?.inventory_id,
+          qty: inventory?.qty_out,
+        });
+      } else {
+        service_id_mapped_inventories[inventory?.service_request] = [
+          { inventory_id: inventory?.inventory_id, qty: inventory?.qty_out },
+        ];
+      }
+    });
+
+    for (
+      let i = 0;
+      i < Object.keys(service_id_mapped_inventories)?.length;
+      i++
+    ) {
+      const service_id = Object.keys(service_id_mapped_inventories)?.[i];
+
+      const inventories = service_id_mapped_inventories?.[service_id];
+
+      await AssignServiceModel.insertMany({
+        serviceId: service_id,
+        inventories,
+      });
+    }
+
+    res.status(201).json({
+      message: "Inventories created successfully.",
+      data: newInventories,
+    });
   } catch (error) {
     res
       .status(500)
@@ -22,13 +61,58 @@ const getAllInventories = async (req, res) => {
     const query = req?.query;
 
     const inventories = await InventoryModel.find(query)
-      .populate(["inventory_id", "supplier_id"])
+      .populate([
+        "inventory_id",
+        "supplier_id",
+        "received_by",
+        "service_request",
+      ])
       .sort({
         createdAt: -1,
       });
 
     res.status(200).json({ data: inventories });
   } catch (error) {
+    console.log(error, "errorerror");
+
+    res
+      .status(500)
+      .json({ message: "Error fetching inventories.", error: error.message });
+  }
+};
+
+const getAvailableQuantity = async (req, res) => {
+  try {
+    const result = await InventoryModel.aggregate([
+      {
+        $group: {
+          _id: "$inventory_id",
+          total_in: { $sum: "$qty_in" },
+          total_out: { $sum: "$qty_out" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          inventory_id: "$_id",
+          available_qty: { $subtract: ["$total_in", "$total_out"] },
+        },
+      },
+    ]);
+
+    // Convert array to object
+    const available_quantities = result.reduce(
+      (acc, { inventory_id, available_qty }) => {
+        acc[inventory_id] = available_qty;
+        return acc;
+      },
+      {}
+    );
+
+    res.json(available_quantities);
+  } catch (error) {
+    console.log(error, "errorerror");
+
     res
       .status(500)
       .json({ message: "Error fetching inventories.", error: error.message });
@@ -110,4 +194,5 @@ module.exports = {
   getInventoryById,
   updateInventoryById,
   deleteInventoryById,
+  getAvailableQuantity,
 };

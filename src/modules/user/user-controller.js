@@ -100,7 +100,7 @@ const createUser = async (req, res) => {
 // Get all users
 const getAllUsers = async (req, res) => {
   try {
-    const users = await UserModal.find().populate("role", "name");
+    const users = await UserModal.find(req?.query).populate("role", "name");
     return res.status(200).json(users);
   } catch (error) {
     return res
