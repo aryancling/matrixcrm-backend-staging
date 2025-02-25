@@ -60,7 +60,10 @@ const getServiceRequestsByServicePartnerId = async (req, res) => {
     const servicePartnerId = req.params?.servicePartnerId;
 
     // Fetch all service requests by clientId and populate related fields
-    const requests = await ServiceRequestModal.find({ servicePartnerId })
+    const requests = await ServiceRequestModal.find({
+      servicePartnerId,
+      ...req?.query,
+    })
       .populate("pmAssigned")
       .populate("smAssigned")
       .populate("quotation")
@@ -82,7 +85,7 @@ const getServiceRequestsByClientId = async (req, res) => {
     const clientId = req.params?.clientId;
 
     // Fetch all service requests by clientId and populate related fields
-    const requests = await ServiceRequestModal.find({ clientId })
+    const requests = await ServiceRequestModal.find({ clientId, ...req?.query })
       .populate("pmAssigned")
       .populate("smAssigned")
       .populate("quotation")

@@ -4,6 +4,7 @@ const BranchSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     code: { type: String },
+    department: { type: String },
     client_address: { type: String },
     city: { type: String, required: true },
     state: { type: String, required: true },

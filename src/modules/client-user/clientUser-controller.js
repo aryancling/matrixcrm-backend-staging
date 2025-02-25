@@ -1,3 +1,4 @@
+const { checkIfNumberEmailUnique } = require("../../utils/helpers");
 const { ClientUserModal } = require("./clientUser-modal");
 const mongoose = require("mongoose"); // Import mongoose for ObjectId validation
 
@@ -7,6 +8,7 @@ const createClientUser = async (req, res) => {
     const {
       name,
       mobile,
+      email,
       user_type,
       reporting_to,
       clientId,
@@ -28,9 +30,17 @@ const createClientUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid reporting_to ID" });
     }
 
+    const is_unique = await checkIfNumberEmailUnique(mobile, email);
+    console.log(is_unique, "is_unique");
+
+    if (!is_unique?.success && is_unique?.error) {
+      return res.status(400).json({ message: is_unique?.error });
+    }
+
     const newUser = new ClientUserModal({
       name,
       mobile,
+      email,
       user_type,
       designation,
       reporting_to: reporting_to || undefined,
@@ -149,6 +159,18 @@ const updateClientUser = async (req, res) => {
     }
     if (clientId && !mongoose.Types.ObjectId.isValid(clientId)) {
       return res.status(400).json({ message: "Invalid clientId" });
+    }
+
+    if (req?.body?.mobile || req?.body?.email) {
+      const is_unique = await checkIfNumberEmailUnique(
+        req?.body?.mobile,
+        req?.body?.email,
+        req?.params?.id
+      );
+
+      if (!is_unique?.success && is_unique?.error) {
+        return res.status(400).json({ message: is_unique?.error });
+      }
     }
 
     const updatedUser = await ClientUserModal.findByIdAndUpdate(

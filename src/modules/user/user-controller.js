@@ -2,6 +2,7 @@ const { UserModal } = require("./user-modal");
 
 const { ClientUserModal } = require("../client-user/clientUser-modal");
 const { sendFailedResponse } = require("../../utils/response");
+const { checkIfNumberEmailUnique } = require("../../utils/helpers");
 
 const getUsersBasedOnPermissions = async (req, res) => {
   try {
@@ -75,10 +76,23 @@ const getUserAndClientUserById = async (req, res) => {
 // Create a new user
 const createUser = async (req, res) => {
   try {
-    const { name, mobile, role, profileImage, userType, servicePartnerId } =
-      req.body;
+    const {
+      name,
+      email,
+      mobile,
+      role,
+      profileImage,
+      userType,
+      servicePartnerId,
+    } = req.body;
+    const is_unique = await checkIfNumberEmailUnique(mobile, email);
+
+    if (!is_unique?.success && is_unique?.error) {
+      return res.status(400).json({ message: is_unique?.error });
+    }
     const newUser = new UserModal({
       name,
+      email,
       mobile,
       role,
       profileImage,
@@ -148,6 +162,18 @@ const getUserById = async (req, res) => {
 // Update user details
 const updateUser = async (req, res) => {
   try {
+    if (req?.body?.mobile || req?.body?.email) {
+      const is_unique = await checkIfNumberEmailUnique(
+        req?.body?.mobile,
+        req?.body?.email,
+        req?.params?.id
+      );
+
+      if (!is_unique?.success && is_unique?.error) {
+        return res.status(400).json({ message: is_unique?.error });
+      }
+    }
+
     const updatedUser = await UserModal.findByIdAndUpdate(
       req.params.id,
       { ...req.body },

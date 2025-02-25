@@ -1,8 +1,19 @@
+const { checkIfNumberEmailUnique } = require("../../utils/helpers");
 const { ClientUserModal } = require("../client-user/clientUser-modal");
 const { ClientModel } = require("./client-model");
 
 // Create a new client
 async function createClient(req, res) {
+  if (req?.body?.mobile || req?.body?.email) {
+    const is_unique = await checkIfNumberEmailUnique(
+      req?.body?.mobile,
+      req?.body?.email
+    );
+
+    if (!is_unique?.success && is_unique?.error) {
+      return res.status(400).json({ message: is_unique?.error });
+    }
+  }
   const client = new ClientModel(req.body);
   try {
     const savedClient = await client.save();
@@ -41,6 +52,17 @@ async function getAllClients(req, res) {
 // Update a client by ID
 async function updateClient(req, res) {
   try {
+    if (req?.body?.mobile || req?.body?.email) {
+      const is_unique = await checkIfNumberEmailUnique(
+        req?.body?.mobile,
+        req?.body?.email,
+        req?.params?.id
+      );
+
+      if (!is_unique?.success && is_unique?.error) {
+        return res.status(400).json({ message: is_unique?.error });
+      }
+    }
     const updatedClient = await ClientModel.findByIdAndUpdate(
       req.params.id,
       req.body,

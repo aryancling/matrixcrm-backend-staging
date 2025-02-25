@@ -1,29 +1,24 @@
+const { checkIfNumberEmailUnique } = require("../../utils/helpers");
 const { UserModal } = require("../user/user-modal");
 const { ServicePartnerModel } = require("./service-partner-model");
 
 // Create a new servicePartner
 async function createServicePartner(req, res) {
-  const { name, mobile } = req.body;
-  if (mobile) {
-    const existing = await ServicePartnerModel.findOne({ mobile });
-    const existingUser = await UserModal.findOne({ mobile });
-    if (existing?._id) {
-      return res
-        .status(502)
-        .json({ message: "Service Partner with this number already exists" });
-    }
-    if (existingUser?._id) {
-      return res
-        .status(502)
-        .json({ message: "User with this number already exists" });
-    }
+  const { name, mobile, email } = req.body;
+
+  const is_unique = await checkIfNumberEmailUnique(mobile, email);
+
+  if (!is_unique?.success && is_unique?.error) {
+    return res.status(400).json({ message: is_unique?.error });
   }
+
   const servicePartner = new ServicePartnerModel(req.body);
   try {
     const savedServicePartner = await servicePartner.save();
     const newUser = new UserModal({
       name,
       mobile,
+      email,
       userType: "admin",
       servicePartnerId: savedServicePartner?._id,
     });
@@ -67,6 +62,17 @@ async function getAllServicePartners(req, res) {
 // Update a servicePartner by ID
 async function updateServicePartner(req, res) {
   try {
+    if (req?.body?.mobile || req?.body?.email) {
+      const is_unique = await checkIfNumberEmailUnique(
+        req?.body?.mobile,
+        req?.body?.email,
+        req?.params?.id
+      );
+
+      if (!is_unique?.success && is_unique?.error) {
+        return res.status(400).json({ message: is_unique?.error });
+      }
+    }
     const updatedServicePartner = await ServicePartnerModel.findByIdAndUpdate(
       req.params.id,
       req.body,

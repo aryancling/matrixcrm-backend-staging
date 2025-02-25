@@ -17,6 +17,7 @@ const ServicePartnerRoutes = require("../src/modules/service-partner/service-par
 const AssignServiceRoutes = require("../src/modules/assign-serivce/assign-service-route");
 const QuotationsRoutes = require("../src/modules/quotation/quotation-route");
 const DiscussionBoardRoutes = require("../src/modules/discussion-board/discussion-board-routes");
+const UtilityRoutes = require("../src/modules/utility/utility-route");
 const PaymentsRoutes = require("../src/modules/payments/payment-route");
 const ExpensesRoutes = require("../src/modules/expenses/expense-route");
 const TimeLogRoutes = require("../src/modules/timeLog/time-log-routes");
@@ -105,6 +106,10 @@ const moduleRoutes = [
   {
     path: "/discussion-board",
     route: DiscussionBoardRoutes,
+  },
+  {
+    path: "/utility",
+    route: UtilityRoutes,
   },
 ];
 

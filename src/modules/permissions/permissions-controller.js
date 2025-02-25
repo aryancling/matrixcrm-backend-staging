@@ -8,8 +8,19 @@ async function getAllPermissions(req, res) {
     sendSuccessResponse(res, {
       data: {
         category: ["add", "update", "delete", "view"],
-        inventory: ["add", "update", "delete", "assign", "view"],
-        quotation: ["add", "update", "delete", "view"],
+        inventory: [
+          "add",
+          "update",
+          "delete",
+          "assign",
+          "view",
+          "manage_items",
+          "view_inventory_in",
+          "view_inventory_out",
+          "add_inventory_in",
+          "add_inventory_out",
+        ],
+        quotation: ["add", "update", "delete", "view", "send_via_email"],
         task: ["add", "update", "delete", "view"],
         payment: ["request", "update", "delete", "view"],
         time_log: ["add", "update", "delete", "view"],

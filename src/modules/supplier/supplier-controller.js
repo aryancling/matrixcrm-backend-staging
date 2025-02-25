@@ -1,8 +1,19 @@
+const { checkIfNumberEmailUnique } = require("../../utils/helpers");
 const { sendSuccessResponse } = require("../../utils/response");
 const { SupplierModal } = require("./supplier-modal");
 
 const createSupplier = async (req, res) => {
   try {
+    if (req?.body?.mobile || req?.body?.email) {
+      const is_unique = await checkIfNumberEmailUnique(
+        req?.body?.mobile,
+        req?.body?.email
+      );
+
+      if (!is_unique?.success && is_unique?.error) {
+        return res.status(400).json({ message: is_unique?.error });
+      }
+    }
     const newSupplier = await SupplierModal.create(req?.body);
     sendSuccessResponse(res, {
       message: "Supplier created successfully",
@@ -45,6 +56,17 @@ const getSupplierById = async (req, res) => {
 
 const updateSupplier = async (req, res) => {
   try {
+    if (req?.body?.mobile || req?.body?.email) {
+      const is_unique = await checkIfNumberEmailUnique(
+        req?.body?.mobile,
+        req?.body?.email,
+        req?.params?.id
+      );
+
+      if (!is_unique?.success && is_unique?.error) {
+        return res.status(400).json({ message: is_unique?.error });
+      }
+    }
     const updatedSupplier = await SupplierModal.findByIdAndUpdate(
       req.params.id,
       { ...req.body },
