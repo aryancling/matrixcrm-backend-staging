@@ -21,7 +21,7 @@ const createRc = async (req, res) => {
 
 const searchRCs = async (req, res) => {
   try {
-    const { search, ...rest } = req?.query;
+    const { search, clientId, servicePartnerId } = req?.query;
 
     if (!search) {
       return res.status(400).json({ message: "Query parameter is required" });
@@ -30,32 +30,39 @@ const searchRCs = async (req, res) => {
     // Search RCs by `finished_goods` and `itemName` from Inventory
     const rcs = await RcModal.find({
       $or: [
+        { rc_number: { $regex: search, $options: "i" } }, // Search finished_goods
         { finished_goods: { $regex: search, $options: "i" } }, // Search finished_goods
         { inventory_id: { $exists: true } }, // Ensure inventory exists
       ],
-      ...rest,
+      servicePartnerId,
+      clientId,
     }).populate({
       path: "inventory_id",
-      match: { itemName: { $regex: search, $options: "i" } }, // Search in Inventory name
+      match: {
+        itemName: { $regex: search, $options: "i" },
+        servicePartnerId,
+        clientId,
+      }, // Search in Inventory name
     });
 
     // Filter out RCs where inventory_id does not match
     let filteredRcs = rcs.filter((rc) => rc.inventory_id !== null);
 
     // If no RCs are found, search directly in Inventory
-    if (filteredRcs.length === 0) {
-      const inventoryItems = await ItemModel.find({
-        itemName: { $regex: search, $options: "i" },
-      });
+    // if (filteredRcs.length === 0) {
+    const inventoryItems = await ItemModel.find({
+      itemName: { $regex: search, $options: "i" },
+      servicePartnerId,
+    });
 
-      if (inventoryItems.length > 0) {
-        return res
-          .status(200)
-          .json({ source: "inventory", data: inventoryItems });
-      }
-    }
+    // if (inventoryItems.length > 0) {
+    //   return res
+    //     .status(200)
+    //     .json({ source: "inventory", data: inventoryItems });
+    // }
+    // }
 
-    res.status(200).json({ source: "rcs", data: filteredRcs });
+    res.status(200).json({ data: [...filteredRcs, ...inventoryItems] });
   } catch (error) {
     console.error("Error in search API:", error);
     res.status(500).json({ message: "Server error", error });

@@ -19,10 +19,6 @@ async function getExpenseByServiceId(req, res) {
       serviceRequestId: req.params.serviceId,
     }).sort({ createdAt: -1 });
 
-    if (expenses.length === 0) {
-      return res.status(404).json({ message: "Expenses not found" });
-    }
-
     res.json(expenses);
   } catch (error) {
     res
