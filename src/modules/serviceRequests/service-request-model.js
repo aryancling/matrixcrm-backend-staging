@@ -37,6 +37,13 @@ const ServiceRequestSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       ref: "Branch",
     },
+    users: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "User",
+        default: [],
+      },
+    ],
     quotationCreatedStatus: {
       type: String,
       enum: Object.values(Status),

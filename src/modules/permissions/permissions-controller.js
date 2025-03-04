@@ -32,6 +32,7 @@ async function getAllPermissions(req, res) {
           "view_details",
           "assign_to_product_manager",
           "assign_to_service_manager",
+          "assign_to_user",
         ],
         after_photo: ["add", "view"],
         expense: ["add", "update", "delete", "view"],

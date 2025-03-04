@@ -164,7 +164,11 @@ const assignPm = async (req, res) => {
 
     const updatedRequest = await ServiceRequestModal.findByIdAndUpdate(
       id,
-      { pmAssigned: pmId, pmAssignedStatus: Status.ASSIGNED },
+      {
+        pmAssigned: pmId,
+        pmAssignedStatus: Status.ASSIGNED,
+        $push: { users: pmId },
+      },
       { new: true }
     );
 
@@ -190,7 +194,11 @@ const assignSm = async (req, res) => {
 
     const updatedRequest = await ServiceRequestModal.findByIdAndUpdate(
       id,
-      { smAssigned: smId, smAssignedStatus: Status.ASSIGNED },
+      {
+        smAssigned: smId,
+        smAssignedStatus: Status.ASSIGNED,
+        $push: { users: smId },
+      },
       { new: true }
     );
 
@@ -201,6 +209,31 @@ const assignSm = async (req, res) => {
     res
       .status(200)
       .json({ message: "SM assigned successfully.", data: updatedRequest });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error assigning SM.", error: error.message });
+  }
+};
+
+const assignToUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { user_id } = req.body;
+
+    const updatedRequest = await ServiceRequestModal.findByIdAndUpdate(
+      id,
+      { $push: { users: user_id } },
+      { new: true }
+    );
+
+    if (!updatedRequest) {
+      return res.status(404).json({ message: "Service Request not found." });
+    }
+
+    res
+      .status(200)
+      .json({ message: "User assigned successfully.", data: updatedRequest });
   } catch (error) {
     res
       .status(500)
@@ -462,4 +495,5 @@ module.exports = {
   updateQuotationApprovalStatus,
   getServiceRequestsByServicePartnerId,
   getServiceRequestsByClientId,
+  assignToUser,
 };

@@ -194,14 +194,21 @@ const sendEmail = async ({
     var transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: "phonologixdeveloper@gmail.com",
-        pass: "qltfqjevclinudxs",
+        user: "mi2005.delhi@gmail.com",
+        pass: "pwcdavpfutinjdjb",
       },
     });
+    // var transporter = nodemailer.createTransport({
+    //   service: "gmail",
+    //   auth: {
+    //     user: "phonologixdeveloper@gmail.com",
+    //     pass: "qltfqjevclinudxs",
+    //   },
+    // });
 
     var mailOptions = {
       // from: "support",
-      from: "support@matrixonline.in",
+      from: "Matrix Intertech <mi2005.delhi@gmail.com>",
       to: recipientEmail,
       cc: ccEmails,
       subject,
