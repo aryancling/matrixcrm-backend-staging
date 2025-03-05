@@ -69,7 +69,7 @@ const sendOtp = async (req, res) => {
     });
     // Send OTP in response instead
     res.json({
-      message: "OTP generated successfully",
+      message: "OTP sent to the registered email address",
       otp, // Include the OTP in the response
       data: { phoneNumber },
     });
