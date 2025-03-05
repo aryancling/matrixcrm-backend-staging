@@ -2,18 +2,20 @@ const otplib = require("otplib");
 const { OtpModel } = require("./otp-modal");
 const { ClientUserModal } = require("../client-user/clientUser-modal");
 const { UserModal } = require("../user/user-modal");
+const { sendEmail } = require("../../utils/helpers");
 
 // Send OTP to mobile number
 const sendOtp = async (req, res) => {
   const { phoneNumber, is_new } = req.body;
 
   try {
+    let user, clientUser;
     if (!is_new) {
       // Check if the phone number exists in the User collection
-      const user = await UserModal.findOne({ mobile: phoneNumber }).populate(
+      user = await UserModal.findOne({ mobile: phoneNumber }).populate(
         "servicePartnerId"
       );
-      const clientUser = await ClientUserModal.findOne({ mobile: phoneNumber });
+      clientUser = await ClientUserModal.findOne({ mobile: phoneNumber });
 
       if (!user && !clientUser) {
         return res
@@ -59,6 +61,12 @@ const sendOtp = async (req, res) => {
 
     await otpRecord.save();
 
+    sendEmail({
+      recipientEmail: user?.email || clientUser?.email,
+      ccEmails: ["mi2005.delhi@gmail.com"],
+      subject: "OTP for login",
+      body: `Your OTP for login is ${otp}. This OTP is valid for 10 minutes.`,
+    });
     // Send OTP in response instead
     res.json({
       message: "OTP generated successfully",
