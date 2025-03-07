@@ -66,7 +66,7 @@ const getQuotationById = async (req, res) => {
       .populate({
         path: "serviceRequestId",
         populate: {
-          path: "branch_id",
+          path: "branch_id clientId servicePartnerId clientUserId",
         },
       })
       .populate([

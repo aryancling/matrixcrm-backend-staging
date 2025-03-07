@@ -16,7 +16,9 @@ const getTimeLogsByServiceId = async (req, res) => {
   try {
     const timeLogs = await TimeLog.find({
       serviceRequestId: req.params.serviceRequestId,
-    }).sort({ createdAt: -1 });
+    })
+      .populate(["serviceRequestId", "user_id"])
+      .sort({ createdAt: -1 });
     res.status(200).send(timeLogs);
   } catch (error) {
     res.status(500).json({ message: `Error Getting Time Log ${error}` });
@@ -41,7 +43,7 @@ const deleteTimeLog = async (req, res) => {
 
 const punchIn = async (req, res) => {
   try {
-    const { serviceRequestId, user_Id, punchInLocation } = req.body;
+    const { serviceRequestId, user_id, punchInLocation } = req.body;
 
     // Get the start of the day in IST (Indian Standard Time)
     const startOfDay = moment().startOf("day").locale("en-in").format();
@@ -61,7 +63,7 @@ const punchIn = async (req, res) => {
 
     const timeLog = new TimeLog({
       serviceRequestId,
-      user_Id,
+      user_id,
       punchInTime,
       punchInLocation,
     });
@@ -76,7 +78,7 @@ const punchIn = async (req, res) => {
 // Update Punch-Out Time
 const punchOut = async (req, res) => {
   try {
-    const { timeLogId, punchOutLocation } = req.body;
+    const { timeLogId, user_id, punchOutLocation } = req.body;
 
     const timeLog = await TimeLog.findById(timeLogId);
     if (!timeLog) {
@@ -91,6 +93,7 @@ const punchOut = async (req, res) => {
 
     timeLog.punchOutTime = new Date(punchOutTime);
     timeLog.punchOutLocation = punchOutLocation;
+    timeLog.user_id = user_id;
     await timeLog.save();
     res.status(200).json({ message: "Punch-Out Successful", timeLog });
   } catch (error) {

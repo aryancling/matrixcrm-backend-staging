@@ -30,7 +30,7 @@ async function getAllPermissions(req, res) {
           "raise",
           "view_all",
           "view_details",
-          "assign_to_product_manager",
+          "assign_to_project_manager",
           "assign_to_service_manager",
           "assign_to_user",
         ],

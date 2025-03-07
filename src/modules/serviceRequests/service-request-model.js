@@ -16,11 +16,13 @@ const Status = {
 const ServiceRequestSchema = new mongoose.Schema(
   {
     clientId: { type: mongoose.Types.ObjectId, ref: "Client" },
+    clientUserId: { type: mongoose.Types.ObjectId, ref: "ClientUser" },
+    call_reference_number: { type: String },
     servicePartnerId: { type: mongoose.Types.ObjectId, ref: "ServicePartner" },
     title: { type: String, required: true },
-    cost_code: { type: String, required: true },
-    cost_name: { type: String, required: true },
-    description: { type: String, required: true },
+    cost_code: { type: String },
+    cost_name: { type: String },
+    description: { type: String },
     serviceNumber: { type: String, required: true, unique: true },
     serviceType: { type: String, required: true },
     beforeImages: { type: [String] },
@@ -54,6 +56,7 @@ const ServiceRequestSchema = new mongoose.Schema(
       enum: Object.values(Status),
       default: Status.PENDING,
     },
+    call_date_time: { type: Date },
     quotationUpdatedAt: { type: Date },
     taskCompletionStatus: {
       type: String,

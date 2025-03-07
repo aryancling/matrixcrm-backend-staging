@@ -16,8 +16,10 @@ async function createExpense(req, res) {
 async function getExpenseByServiceId(req, res) {
   try {
     const expenses = await ExpenseModel.find({
-      serviceRequestId: req.params.serviceId,
-    }).sort({ createdAt: -1 });
+      serviceRequestId: req?.params?.serviceId,
+    })
+      .populate(["serviceRequestId", "user_id", "action_taken_by"])
+      .sort({ createdAt: -1 });
 
     res.json(expenses);
   } catch (error) {
@@ -30,14 +32,14 @@ async function getExpenseByServiceId(req, res) {
 // Update expense status
 async function updateExpenseStatus(req, res) {
   try {
-    const expenseStatus = req.body.expenseStatus;
+    const { expenseStatus, action_taken_by } = req.body;
     // Validate expenseStatus against Status constants
     if (!Object.values(Status).includes(expenseStatus)) {
       return res.status(400).json({ message: "Invalid expense status" });
     }
     const updatedExpense = await ExpenseModel.findByIdAndUpdate(
       req.params.id,
-      { expenseStatus: expenseStatus },
+      { expenseStatus, action_taken_by },
       { new: true }
     );
     if (!updatedExpense)

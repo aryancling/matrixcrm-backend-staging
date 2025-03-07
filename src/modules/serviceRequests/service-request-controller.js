@@ -6,23 +6,7 @@ const { ServiceRequestModal, Status } = require("./service-request-model");
 // Create a new Service Request
 const createRequest = async (req, res) => {
   try {
-    const {
-      clientId,
-      servicePartnerId,
-      title,
-      description,
-      beforeImages,
-      serviceType,
-      cost_code,
-      cost_name,
-      branch_id,
-    } = req.body;
-
-    if (!title || !description || !serviceType) {
-      return res
-        .status(400)
-        .json({ message: "All required fields must be provided." });
-    }
+    const { clientId, ...rest } = req.body;
 
     const clientName = await ClientModel.findOne({ _id: clientId }).select(
       "client_name"
@@ -30,14 +14,7 @@ const createRequest = async (req, res) => {
 
     const newRequest = new ServiceRequestModal({
       clientId,
-      servicePartnerId,
-      title,
-      description,
-      beforeImages,
-      serviceType,
-      cost_code,
-      cost_name,
-      branch_id,
+      ...rest,
       serviceNumber: generateRequestNumber("SR", clientName?.client_name),
     });
 
@@ -47,6 +24,8 @@ const createRequest = async (req, res) => {
       data: newRequest,
     });
   } catch (error) {
+    console.log(error, "Eroor");
+
     res.status(500).json({
       message: "Error creating Service Request.",
       error: error.message,
@@ -67,7 +46,8 @@ const getServiceRequestsByServicePartnerId = async (req, res) => {
       .populate("pmAssigned")
       .populate("smAssigned")
       .populate("quotation")
-      .populate("branch_id");
+      .populate("branch_id")
+      .populate("clientUserId");
 
     // Respond with the fetched data
     res.status(200).json({ data: requests });
@@ -89,6 +69,7 @@ const getServiceRequestsByClientId = async (req, res) => {
       .populate("pmAssigned")
       .populate("smAssigned")
       .populate("quotation")
+      .populate("clientUserId")
       .populate("branch_id");
 
     // Respond with the fetched data
@@ -126,6 +107,7 @@ const getRequestById = async (req, res) => {
       .populate("clientId")
       .populate("servicePartnerId")
       .populate("branch_id")
+      .populate("clientUserId")
       .populate({
         path: "quotation",
         populate: [
@@ -287,7 +269,7 @@ const getServiceRequestDetails = async (req, res) => {
       .populate({
         path: "serviceId",
         populate: {
-          path: "pmAssigned smAssigned branch_id",
+          path: "pmAssigned smAssigned branch_id clientUserId",
         },
       })
       .populate("inventories.inventory_id")
@@ -304,6 +286,7 @@ const getServiceRequestDetails = async (req, res) => {
         .populate("smAssigned")
         .populate("clientId")
         .populate("branch_id")
+        .populate("clientUserId")
         .populate({
           path: "quotation",
           populate: [

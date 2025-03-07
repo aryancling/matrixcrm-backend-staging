@@ -13,6 +13,10 @@ const ExpenseSchema = new mongoose.Schema(
       ref: "ServiceRequest",
       required: true,
     },
+    user_id: {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
+    },
     amount: {
       type: Number,
       required: true,
@@ -26,6 +30,10 @@ const ExpenseSchema = new mongoose.Schema(
       type: String,
       required: true,
       default: Status.REQUESTED,
+    },
+    action_taken_by: {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
     },
   },
   {

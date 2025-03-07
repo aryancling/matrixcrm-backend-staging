@@ -7,7 +7,7 @@ const TimeLogSchema = new mongoose.Schema(
       ref: "ServiceRequest",
       required: true,
     },
-    user_Id: {
+    user_id: {
       type: mongoose.Types.ObjectId,
       ref: "User",
     },

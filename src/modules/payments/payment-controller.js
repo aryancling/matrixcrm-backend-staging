@@ -17,7 +17,9 @@ async function getPaymentByServiceId(req, res) {
   try {
     const payments = await PaymentModel.find({
       serviceRequestId: req.params.serviceId,
-    }).sort({ createdAt: -1 });
+    })
+      .populate(["serviceRequestId", "user_id", "action_taken_by"])
+      .sort({ createdAt: -1 });
 
     res.json(payments);
   } catch (error) {
@@ -30,14 +32,14 @@ async function getPaymentByServiceId(req, res) {
 // Update payment status
 async function updatePaymentStatus(req, res) {
   try {
-    const paymentStatus = req.body.paymentStatus;
+    const { paymentStatus, action_taken_by } = req.body;
     // Validate paymentStatus against Status constants
     if (!Object.values(Status).includes(paymentStatus)) {
       return res.status(400).json({ message: "Invalid payment status" });
     }
     const updatedPayment = await PaymentModel.findByIdAndUpdate(
       req.params.id,
-      { paymentStatus: paymentStatus },
+      { paymentStatus, action_taken_by },
       { new: true }
     );
     if (!updatedPayment)

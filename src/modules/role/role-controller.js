@@ -24,7 +24,7 @@ const createRole = async (req, res) => {
 
 const getAllRoles = async (req, res) => {
   try {
-    const roles = await RoleModel.find();
+    const roles = await RoleModel.find(req?.query);
     sendSuccessResponse(res, {
       data: roles,
     });
@@ -59,6 +59,8 @@ const updateRole = async (req, res) => {
       .status(200)
       .json({ message: "Role updated successfully", role: updatedRole });
   } catch (error) {
+    console.log(error, "error");
+
     return res.status(500).json({ message: "Error updating role" });
   }
 };

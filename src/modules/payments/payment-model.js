@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
 
 const Status = {
-    REQUESTED: "Requested",
-    APPROVED: "Approved",
-    REJECTED: "Rejected",
-    PAID: "Paid",
+  REQUESTED: "Requested",
+  APPROVED: "Approved",
+  REJECTED: "Rejected",
+  PAID: "Paid",
 };
 const PaymentSchema = new mongoose.Schema(
   {
@@ -12,6 +12,10 @@ const PaymentSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       ref: "ServiceRequest",
       required: true,
+    },
+    user_id: {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
     },
     amount: {
       type: Number,
@@ -25,7 +29,11 @@ const PaymentSchema = new mongoose.Schema(
     paymentStatus: {
       type: String,
       required: true,
-      default: Status.REQUESTED
+      default: Status.REQUESTED,
+    },
+    action_taken_by: {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
     },
   },
   {
@@ -35,4 +43,4 @@ const PaymentSchema = new mongoose.Schema(
 
 const PaymentModel = mongoose.model("Payments", PaymentSchema);
 
-module.exports = {PaymentModel , Status};
+module.exports = { PaymentModel, Status };
