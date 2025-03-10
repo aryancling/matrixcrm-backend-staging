@@ -6,16 +6,15 @@ const { checkIfNumberEmailUnique } = require("../../utils/helpers");
 
 const getUsersBasedOnPermissions = async (req, res) => {
   try {
-    const { permissions, clientId } = req?.body;
+    const { permissions, servicePartnerId } = req?.body;
     const users = await UserModal.aggregate([
       {
         $addFields: {
-          clientId: {
-            $toString: "$clientId",
+          servicePartnerId: {
+            $toString: "$servicePartnerId",
           },
         },
       },
-
       {
         $lookup: {
           from: "roles",
@@ -28,7 +27,7 @@ const getUsersBasedOnPermissions = async (req, res) => {
       {
         $match: {
           "roleData.permissions": { $all: permissions },
-          clientId,
+          servicePartnerId: servicePartnerId?.toString(),
         },
       },
 
@@ -146,7 +145,7 @@ const getUserWithServicePartnerIdWithoutAdmin = async (req, res) => {
 // Get a single user by ID
 const getUserById = async (req, res) => {
   try {
-    const user = await UserModal.findById(req.params.id);
+    const user = await UserModal.findById(req.params.id).populate("role");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
