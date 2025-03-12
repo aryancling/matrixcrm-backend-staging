@@ -1,9 +1,44 @@
 const { UserModal } = require("./user-modal");
-
 const { ClientUserModal } = require("../client-user/clientUser-modal");
 const { sendFailedResponse } = require("../../utils/response");
 const { checkIfNumberEmailUnique } = require("../../utils/helpers");
 
+const getUsersBasedOnRole = async (req, res) => {
+  try {
+    const { role, servicePartnerId } = req?.body;
+    const users = await UserModal.aggregate([
+      {
+        $addFields: {
+          servicePartnerId: {
+            $toString: "$servicePartnerId",
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "roles",
+          localField: "role",
+          foreignField: "_id",
+          as: "roleData",
+        },
+      },
+
+      {
+        $match: {
+          "roleData.name": { $regex: new RegExp("^" + role + "$", "i") },
+          servicePartnerId: servicePartnerId?.toString(),
+        },
+      },
+
+      { $unwind: "$roleData" },
+    ]);
+
+    return res.status(200).json(users);
+  } catch (error) {
+    sendFailedResponse(res, {}, error);
+    // return res.status(500).json({ message: "Server error", error });
+  }
+};
 const getUsersBasedOnPermissions = async (req, res) => {
   try {
     const { permissions, servicePartnerId } = req?.body;
@@ -215,4 +250,5 @@ module.exports = {
   getUserAndClientUserById,
   getUserWithServicePartnerIdWithoutAdmin,
   getUsersBasedOnPermissions,
+  getUsersBasedOnRole,
 };
