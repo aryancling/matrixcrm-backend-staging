@@ -22,7 +22,6 @@ const createItem = async (req, res) => {
       unit,
       qty,
       rate,
-
       servicePartnerId,
     });
 
@@ -31,6 +30,8 @@ const createItem = async (req, res) => {
       .status(201)
       .json({ message: "Item created successfully.", data: newItem });
   } catch (error) {
+    console.log(error);
+
     res
       .status(500)
       .json({ message: "Error creating item.", error: error.message });

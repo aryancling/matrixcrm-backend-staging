@@ -47,9 +47,11 @@ const sendOtp = async (req, res) => {
       if (new Date() > otpRecord.otpExpires) {
         await otpRecord.deleteOne();
       } else {
-        return res
-          .status(400)
-          .json({ error: "OTP already sent to this phone number" });
+        res.json({
+          message: "OTP sent to the registered email address",
+          otp: otpRecord?.otp, // Include the OTP in the response
+          data: { phoneNumber: otpRecord?.phoneNumber },
+        });
       }
     }
 

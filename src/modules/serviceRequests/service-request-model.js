@@ -20,7 +20,6 @@ const ServiceRequestSchema = new mongoose.Schema(
     call_reference_number: { type: String },
     servicePartnerId: { type: mongoose.Types.ObjectId, ref: "ServicePartner" },
     title: { type: String, required: true },
-    cost_code: { type: String },
     cost_name: { type: String },
     description: { type: String },
     serviceNumber: { type: String, required: true, unique: true },
