@@ -22,6 +22,8 @@ const PaymentsRoutes = require("../src/modules/payments/payment-route");
 const ExpensesRoutes = require("../src/modules/expenses/expense-route");
 const TimeLogRoutes = require("../src/modules/timeLog/time-log-routes");
 const PermissionsRoutes = require("../src/modules/permissions/permissions-route");
+const TaskRoutes = require("../src/modules/task/task-route");
+const InventoryRequestRoutes = require("../src/modules/inventory-request/inventory-request-routes");
 const moduleRoutes = [
   {
     path: "/otp",
@@ -110,6 +112,14 @@ const moduleRoutes = [
   {
     path: "/utility",
     route: UtilityRoutes,
+  },
+  {
+    path: "/task",
+    route: TaskRoutes,
+  },
+  {
+    path: "/inventory-requests",
+    route: InventoryRequestRoutes,
   },
 ];
 

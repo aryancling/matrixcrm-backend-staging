@@ -1,4 +1,7 @@
 const { checkIfNumberEmailUnique } = require("../../utils/helpers");
+const {
+  ClientServicePartnerModal,
+} = require("../client-service-partner/client-service-partner-modal");
 const { ClientUserModal } = require("./clientUser-modal");
 const mongoose = require("mongoose"); // Import mongoose for ObjectId validation
 
@@ -83,7 +86,9 @@ const getUsersByQuery = async (req, res) => {
     const users = await ClientUserModal.find({
       ...rest,
       ...designation_query,
-    }).sort({ createdAt: -1 });
+    })
+      .sort({ createdAt: -1 })
+      .populate("clientId");
     return res.status(200).json(users);
   } catch (error) {
     return res
@@ -142,6 +147,69 @@ const getClientUserByClientIdWithoutAdmin = async (req, res) => {
     return res
       .status(500)
       .json({ message: "Error fetching user", error: error.message });
+  }
+};
+const getClientUsersForServicePartner = async (req, res) => {
+  try {
+    let matchQuery = {};
+    if (req?.query?.clientId) {
+      matchQuery.clientId = new mongoose.Types.ObjectId(req?.query?.clientId);
+    }
+    if (req?.query?.servicePartnerId) {
+      matchQuery.servicePartnerId = new mongoose.Types.ObjectId(
+        req?.query?.servicePartnerId
+      );
+    }
+
+    const users = await ClientServicePartnerModal.aggregate([
+      {
+        $match: matchQuery,
+      },
+      {
+        $lookup: {
+          from: "clientusers",
+          localField: "clientId",
+          foreignField: "clientId",
+          as: "client_users",
+        },
+      },
+      {
+        $unwind: "$client_users",
+      },
+      {
+        $lookup: {
+          from: "clients", // Assuming the collection name is "clients"
+          localField: "client_users.clientId",
+          foreignField: "_id",
+          as: "client",
+        },
+      },
+      {
+        $lookup: {
+          from: "clientusers",
+          localField: "client_users.reporting_to",
+          foreignField: "_id",
+          as: "reporting_to",
+        },
+      },
+      {
+        $addFields: {
+          client_users: {
+            clientId: { $arrayElemAt: ["$client", 0] },
+            reporting_to: { $arrayElemAt: ["$reporting_to", 0] },
+          },
+        },
+      },
+      {
+        $replaceRoot: { newRoot: "$client_users" },
+      },
+    ]);
+
+    return res.status(200).json(users);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Error fetching users", error: error.message });
   }
 };
 // Update user details
@@ -215,4 +283,5 @@ module.exports = {
   deleteClientUser,
   getClientUserByClientId,
   getClientUserByClientIdWithoutAdmin,
+  getClientUsersForServicePartner,
 };

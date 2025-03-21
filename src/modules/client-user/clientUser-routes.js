@@ -10,10 +10,15 @@ const {
   getClientUserByClientId,
   getUsersByQuery,
   getClientUserByClientIdWithoutAdmin,
+  getClientUsersForServicePartner,
 } = require("./clientUser-controller");
 
 router.post("/create-client-user", createClientUser);
 router.post("/get-client-users-by-query", getUsersByQuery);
+router.get(
+  "/get-client-users-for-service-partner",
+  getClientUsersForServicePartner
+);
 router.get("/get-all-client-user", getAllClientUsers);
 router.get("/get-client-user-by-id/:id", getClientUserById);
 router.get("/get-client-user-by-clientid/:id", getClientUserByClientId);

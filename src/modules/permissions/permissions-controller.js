@@ -7,6 +7,7 @@ async function getAllPermissions(req, res) {
   try {
     sendSuccessResponse(res, {
       data: {
+        client_user: ["add", "update", "delete", "view"],
         category: ["add", "update", "delete", "view"],
         inventory: [
           "add",
@@ -14,6 +15,7 @@ async function getAllPermissions(req, res) {
           "delete",
           "assign",
           "view",
+          "request",
           "manage_items",
           "view_inventory_in",
           "view_inventory_out",
@@ -21,8 +23,8 @@ async function getAllPermissions(req, res) {
           "add_inventory_out",
         ],
         quotation: ["add", "update", "delete", "view", "send_via_email"],
-        task: ["add", "update", "delete", "view"],
-        payment: ["request", "update", "delete", "view"],
+        task: ["add", "update", "delete", "view", "change_status"],
+        payment: ["request", "update", "delete", "view", "approve", "reject"],
         time_log: ["add", "update", "delete", "view"],
         rc: ["add", "update", "delete", "view"],
         supplier: ["add", "update", "delete", "view"],
@@ -35,7 +37,7 @@ async function getAllPermissions(req, res) {
           "assign_to_technician",
         ],
         after_photo: ["add", "view"],
-        expense: ["add", "update", "delete", "view"],
+        expense: ["add", "update", "delete", "view", "approve", "reject"],
       },
     });
   } catch (error) {
