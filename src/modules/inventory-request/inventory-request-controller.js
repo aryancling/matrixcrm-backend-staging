@@ -25,6 +25,7 @@ const getAllInventoryRequests = async (req, res) => {
     const inventoryRequests = await InventoryRequestModal.find(query).sort({
       createdAt: -1,
     });
+
     sendSuccessResponse(res, {
       data: inventoryRequests,
     });
@@ -40,7 +41,7 @@ const getInventoryRequestById = async (req, res) => {
   try {
     const inventoryRequest = await InventoryRequestModal.findById(
       req.params.id
-    );
+    ).populate("items.item");
     if (!inventoryRequest) {
       return res.status(404).json({ message: "InventoryRequest not found" });
     }

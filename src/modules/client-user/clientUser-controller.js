@@ -100,7 +100,9 @@ const getUsersByQuery = async (req, res) => {
 // Get a single user by ID
 const getClientUserById = async (req, res) => {
   try {
-    const user = await ClientUserModal.findById(req.params.id);
+    const user = await ClientUserModal.findById(req.params.id).populate(
+      "reporting_to"
+    );
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

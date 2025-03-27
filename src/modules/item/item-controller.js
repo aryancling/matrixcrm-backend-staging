@@ -37,6 +37,23 @@ const createItem = async (req, res) => {
       .json({ message: "Error creating item.", error: error.message });
   }
 };
+const createMultipleItems = async (req, res) => {
+  try {
+    const { items } = req.body;
+
+    const newItems = await ItemModel?.insertMany(items);
+
+    res
+      .status(201)
+      .json({ message: "Items created successfully.", data: newItems });
+  } catch (error) {
+    console.log(error);
+
+    res
+      .status(500)
+      .json({ message: "Error creating item.", error: error.message });
+  }
+};
 
 const searchItems = async (req, res) => {
   try {
@@ -63,10 +80,76 @@ const getAllItems = async (req, res) => {
   try {
     const query = req?.query;
 
-    const items = await ItemModel.find(query).sort({ createdAt: -1 });
+    const items = await ItemModel.aggregate([
+      {
+        $addFields: {
+          servicePartnerId: {
+            $toString: "$servicePartnerId",
+          },
+        },
+      },
+      { $match: query },
+      {
+        $lookup: {
+          from: "inventories",
+          localField: "_id",
+          foreignField: "inventory_id",
+          as: "inventoryData",
+        },
+      },
+      {
+        $addFields: {
+          total_inventory_in: {
+            $sum: {
+              $map: {
+                input: "$inventoryData",
+                as: "inv",
+                in: {
+                  $cond: [
+                    { $eq: ["$$inv.record_type", "inventory_in"] },
+                    "$$inv.qty_in",
+                    0,
+                  ],
+                },
+              },
+            },
+          },
+          total_inventory_out: {
+            $sum: {
+              $map: {
+                input: "$inventoryData",
+                as: "inv",
+                in: {
+                  $cond: [
+                    { $eq: ["$$inv.record_type", "inventory_out"] },
+                    "$$inv.qty_out",
+                    0,
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          available_quantity: {
+            $subtract: ["$total_inventory_in", "$total_inventory_out"],
+          },
+        },
+      },
+      {
+        $project: {
+          inventoryData: 0,
+        },
+      },
+      { $sort: { createdAt: -1 } },
+    ]);
 
     res.status(200).json({ data: items });
   } catch (error) {
+    console.log(error, "error");
+
     res
       .status(500)
       .json({ message: "Error fetching items.", error: error.message });
@@ -134,6 +217,7 @@ const deleteItemById = async (req, res) => {
 
 module.exports = {
   searchItems,
+  createMultipleItems,
   createItem,
   getAllItems,
   getItemById,

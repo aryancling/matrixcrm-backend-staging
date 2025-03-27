@@ -118,7 +118,7 @@ const moduleRoutes = [
     route: TaskRoutes,
   },
   {
-    path: "/inventory-requests",
+    path: "/inventory-request",
     route: InventoryRequestRoutes,
   },
 ];

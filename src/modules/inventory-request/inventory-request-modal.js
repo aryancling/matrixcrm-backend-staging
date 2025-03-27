@@ -21,6 +21,8 @@ const InventoryRequestSchema = new mongoose.Schema(
         itemName: { type: String },
         rate: { type: Number },
         qty: { type: Number },
+        category: { type: String },
+        unit: { type: String },
       },
     ],
   },
@@ -30,7 +32,7 @@ const InventoryRequestSchema = new mongoose.Schema(
 );
 
 const InventoryRequestModal = mongoose.model(
-  "InventoryRequestSchema",
+  "InventoryRequest",
   InventoryRequestSchema
 );
 module.exports = { InventoryRequestModal };
