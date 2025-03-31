@@ -14,9 +14,7 @@ const ClientUserSchema = new mongoose.Schema(
     },
     profileImage: {
       type: String,
-      required: function () {
-        return this.user_type === "clientUser";
-      },
+      required: false,
     },
     reporting_to: {
       type: mongoose.Types.ObjectId,

@@ -15,6 +15,8 @@ async function createTask(req, res) {
     await task.save();
     res.status(201).json({ message: "Task Created Successfully" });
   } catch (error) {
+    console.log(error, "errrrrr");
+
     res
       .status(400)
       .json({ message: "Error Creating Task", error: error.message });

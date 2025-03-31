@@ -14,9 +14,7 @@ const UserSchema = new mongoose.Schema(
     },
     profileImage: {
       type: String,
-      required: function () {
-        return this.userType === "servicePartnerUser";
-      },
+      required: false,
     },
     servicePartnerId: {
       type: mongoose.Schema.Types.ObjectId,
