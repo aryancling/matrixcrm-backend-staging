@@ -43,6 +43,9 @@ const InventorySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    is_godown: {
+      type: Boolean,
+    },
     bill_no: String,
     bill_date: Date,
     person_name: String,

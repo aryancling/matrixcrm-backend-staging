@@ -34,7 +34,12 @@ async function getTaskByServiceId(req, res) {
           ]
         : undefined,
     })
-      .populate(["serviceRequestId", "user_id", "created_by"])
+      .populate([
+        "serviceRequestId",
+        "user_id",
+        "created_by",
+        "logs.updated_by",
+      ])
       .sort({ createdAt: -1 });
 
     res.json(tasks);
@@ -53,7 +58,12 @@ async function getTaskByQuery(req, res) {
         ? [{ user_id: user_id }, { created_by: user_id }]
         : undefined,
     })
-      .populate(["serviceRequestId", "user_id", "created_by"])
+      .populate([
+        "serviceRequestId",
+        "user_id",
+        "created_by",
+        "logs.updated_by",
+      ])
       .sort({ createdAt: -1 });
 
     res.json(tasks);
@@ -75,6 +85,7 @@ async function updateTaskStatus(req, res) {
           logs: {
             status: req?.body?.status,
             remarks: req?.body?.remarks,
+            updated_by: req?.body?.updated_by,
             timestamp: new Date(),
           },
         },

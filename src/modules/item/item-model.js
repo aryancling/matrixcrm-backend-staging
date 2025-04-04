@@ -15,23 +15,23 @@ const ItemSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      required: true,
+      // required: true,
       trim: true,
     },
     hsnCode: {
       type: String,
-      required: true,
+      // required: true,
       trim: true,
     },
     gstPercentage: {
       type: Number,
-      required: true,
+      // required: true,
       min: 0,
       max: 100,
     },
     unit: {
       type: String,
-      required: true,
+      // required: true,
       trim: true,
     },
     qty: {

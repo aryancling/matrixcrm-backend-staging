@@ -41,6 +41,10 @@ const TaskSchema = new mongoose.Schema(
           default: Status.PENDING,
           enum: Object.values(Status),
         },
+        updated_by: {
+          type: mongoose.Types.ObjectId,
+          ref: "User",
+        },
         timestamp: {
           type: Date,
           default: new Date(),

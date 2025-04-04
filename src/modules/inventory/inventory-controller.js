@@ -4,15 +4,49 @@ const InventoryModel = require("./inventory-model");
 // Create a New Inventory
 const createInventory = async (req, res) => {
   try {
-    const newInventories = await InventoryModel.insertMany(
-      req?.body?.inventories
+    let newInventories = [];
+    let inventoriesOut = [];
+    const is_not_godown = req?.body?.inventories?.some(
+      (inventory) => !inventory?.is_godown && inventory?.service_request
     );
 
-    const inventory_out_to_issue = req?.body?.inventories?.filter(
-      (inventory) =>
-        inventory?.record_type === "inventory_out" &&
-        inventory?.inventory_type === "Issued"
-    );
+    if (
+      is_not_godown &&
+      !req?.body?.inventories?.find(
+        (inventory) => inventory?.record_type === "inventory_out"
+      )
+    ) {
+      const newInventoriesIn = await InventoryModel.insertMany(
+        req?.body?.inventories
+      );
+      inventoriesOut = req?.body?.inventories?.map((inventory) => ({
+        servicePartnerId: inventory?.servicePartnerId,
+        inventory_id: inventory?.inventory_id,
+        qty_in: 0,
+        qty_out: inventory?.qty_in,
+        service_request: inventory?.service_request,
+        remarks: inventory?.remarks,
+        inventory_type: "Issued",
+        record_type: "inventory_out",
+      }));
+      const newInventoriesOut = await InventoryModel.insertMany(inventoriesOut);
+
+      newInventories = [...newInventoriesIn, ...newInventoriesOut];
+    } else {
+      newInventories = await InventoryModel.insertMany(req?.body?.inventories);
+    }
+
+    const inventory_out_to_issue = is_not_godown
+      ? inventoriesOut?.filter(
+          (inventory) =>
+            inventory?.record_type === "inventory_out" &&
+            inventory?.inventory_type === "Issued"
+        )
+      : req?.body?.inventories?.filter(
+          (inventory) =>
+            inventory?.record_type === "inventory_out" &&
+            inventory?.inventory_type === "Issued"
+        );
 
     let service_id_mapped_inventories = {};
 
