@@ -34,6 +34,11 @@ const ItemSchema = new mongoose.Schema(
       // required: true,
       trim: true,
     },
+    remarks: {
+      type: String,
+      // required: true,
+      trim: true,
+    },
     qty: {
       type: Number,
       // required: true,

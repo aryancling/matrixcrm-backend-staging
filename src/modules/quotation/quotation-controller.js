@@ -4,11 +4,20 @@ const {
 } = require("../serviceRequests/service-request-model");
 const AssignServiceModel = require("../assign-serivce/assign-service-model");
 const { generateRequestNumber } = require("../../utils/helpers");
+const ItemModel = require("../item/item-model");
 
 const createQuotation = async (req, res) => {
   try {
-    const { serviceRequestId, rcs, non_rcs, total_amount, cgst, sgst, igst } =
-      req.body;
+    const {
+      serviceRequestId,
+      rcs,
+      non_rcs,
+      non_existing_items,
+      total_amount,
+      cgst,
+      sgst,
+      igst,
+    } = req.body;
 
     // Check if Service Request exists
     const serviceRequest = await ServiceRequestModal.findById(
@@ -19,10 +28,28 @@ const createQuotation = async (req, res) => {
       return res.status(404).json({ message: "Service Request not found." });
     }
 
+    let non_rcs_new = non_rcs?.length ? [...non_rcs] : [];
+    if (non_existing_items?.length) {
+      const items = await ItemModel.insertMany(
+        non_existing_items?.map((item) => ({
+          ...item,
+          servicePartnerId: serviceRequest?.servicePartnerId,
+        }))
+      );
+      non_rcs_new = [
+        ...non_rcs,
+        ...items.map((item) => ({
+          inventory_id: item?._id?.toString(),
+          qty: item.qty,
+          remarks: item.remarks,
+        })),
+      ];
+    }
+
     const quotation = new QuotationModel({
       serviceRequestId,
       rcs,
-      non_rcs,
+      non_rcs: non_rcs_new,
       total_amount,
       cgst,
       sgst,
@@ -119,9 +146,30 @@ const updateQuotation = async (req, res) => {
   try {
     const { id } = req.params;
 
+    const { non_rcs, non_existing_items, servicePartnerId, ...rest } =
+      req?.body;
+
+    let non_rcs_new = non_rcs?.length ? [...non_rcs] : [];
+    if (non_existing_items?.length) {
+      const items = await ItemModel.insertMany(
+        non_existing_items?.map((item) => ({
+          ...item,
+          servicePartnerId,
+        }))
+      );
+      non_rcs_new = [
+        ...non_rcs,
+        ...items.map((item) => ({
+          inventory_id: item?._id?.toString(),
+          qty: item.qty,
+          remarks: item.remarks,
+        })),
+      ];
+    }
+
     const updatedQuotation = await QuotationModel.findByIdAndUpdate(
       id,
-      req?.body,
+      { ...rest, non_rcs: non_rcs_new },
       { new: true }
     );
 
