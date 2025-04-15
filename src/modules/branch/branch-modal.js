@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const BranchSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    client_address: { type: String },
+    address: { type: String },
     city: { type: String, required: true },
     state: { type: String, required: true },
     clientId: {

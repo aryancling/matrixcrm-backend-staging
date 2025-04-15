@@ -47,6 +47,7 @@ const getServiceRequestsByServicePartnerId = async (req, res) => {
       .populate("smAssigned")
       .populate("quotation")
       .populate("branch_id")
+      .populate("users")
       .populate("clientUserId");
 
     // Respond with the fetched data
@@ -70,7 +71,8 @@ const getServiceRequestsByClientId = async (req, res) => {
       .populate("smAssigned")
       .populate("quotation")
       .populate("clientUserId")
-      .populate("branch_id");
+      .populate("branch_id")
+      .populate("users");
 
     // Respond with the fetched data
     res.status(200).json({ data: requests });
@@ -86,7 +88,7 @@ const getServiceRequestsByClientId = async (req, res) => {
 const getAllRequests = async (req, res) => {
   try {
     const requests = await ServiceRequestModal.find(req?.query).populate(
-      "pmAssigned smAssigned quotation"
+      "pmAssigned smAssigned quotation branch_id"
     );
     res.status(200).json({ data: requests });
   } catch (error) {
@@ -108,6 +110,7 @@ const getRequestById = async (req, res) => {
       .populate("servicePartnerId")
       .populate("branch_id")
       .populate("clientUserId")
+      .populate("users")
       .populate({
         path: "quotation",
         populate: [

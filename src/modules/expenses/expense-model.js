@@ -22,6 +22,9 @@ const ExpenseSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    approved_amount: {
+      type: Number,
+    },
     desc: {
       type: String,
       required: true,
