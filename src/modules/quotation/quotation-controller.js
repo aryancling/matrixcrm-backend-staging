@@ -5,6 +5,7 @@ const {
 const AssignServiceModel = require("../assign-serivce/assign-service-model");
 const { generateRequestNumber } = require("../../utils/helpers");
 const ItemModel = require("../item/item-model");
+const { RcModal } = require("../rc/rc-modal");
 
 const createQuotation = async (req, res) => {
   try {
@@ -30,21 +31,42 @@ const createQuotation = async (req, res) => {
 
     let non_rcs_new = non_rcs?.length ? [...non_rcs] : [];
     if (non_existing_items?.length) {
-      const items = await ItemModel.insertMany(
-        non_existing_items?.map((item) => ({
+      for (let i = 0; i < non_existing_items.length; i++) {
+        const item = non_existing_items[i];
+        console.log(item, "itemmm");
+
+        const itemAdded = await ItemModel.create({
           ...item,
           servicePartnerId: serviceRequest?.servicePartnerId,
-        }))
-      );
-      non_rcs_new = [
-        ...non_rcs,
-        ...items.map((item) => ({
-          inventory_id: item?._id?.toString(),
-          qty: item.qty,
-          remarks: item.remarks,
-        })),
-      ];
+        });
+
+        console.log(itemAdded, "itemAdded");
+
+        if (itemAdded?._id) {
+          if (item?.rc && !item?.rc_id) {
+            const rcAdded = await RcModal.create({
+              rc_number: item?.rc,
+              inventory_id: itemAdded?._id,
+              finished_goods: "",
+              rate: item?.rate,
+              gstPercentage: item?.gstPercentage,
+              unit: item?.unit,
+              clientId: serviceRequest?.clientId,
+              servicePartnerId: serviceRequest?.servicePartnerId,
+            });
+            console.log(rcAdded, "rcAddedrcAdded");
+          }
+
+          non_rcs_new.push({
+            inventory_id: itemAdded?._id?.toString(),
+            qty: item.qty,
+            remarks: item.remarks,
+          });
+        }
+      }
     }
+
+    console.log(non_rcs_new, "non_rcs_new");
 
     const quotation = new QuotationModel({
       serviceRequestId,

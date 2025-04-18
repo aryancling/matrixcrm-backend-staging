@@ -54,17 +54,29 @@ async function updateExpenseStatus(req, res) {
 }
 async function getLedger(req, res) {
   try {
-    // Fetch all payments and expenses
-    console.log(req?.query);
+    const { from_date, to_date, ...rest } = req?.query;
+
+    const dateFilter = {};
+    if (from_date || to_date) {
+      dateFilter.createdAt = {};
+      if (from_date) dateFilter.createdAt.$gte = new Date(from_date);
+      if (to_date) dateFilter.createdAt.$lte = new Date(to_date);
+    }
 
     const payments = await PaymentModel.find({
-      ...req?.query,
+      ...rest,
+      ...dateFilter,
       paymentStatus: "Paid",
-    }).lean();
+    })
+      .populate(["serviceRequestId", "user_id"])
+      .lean();
     const expenses = await ExpenseModel.find({
-      ...req?.query,
+      ...rest,
+      ...dateFilter,
       expenseStatus: "Approved",
-    }).lean();
+    })
+      .populate(["serviceRequestId", "user_id"])
+      .lean();
 
     console.log(payments, expenses);
 
@@ -92,10 +104,21 @@ async function getLedger(req, res) {
     }));
 
     // Combine and sort all entries by date
-    const allEntries = [...paymentEntries, ...expenseEntries].sort(
-      (a, b) => new Date(a.date) - new Date(b.date)
-    );
+    const allEntries = [...paymentEntries, ...expenseEntries].sort((a, b) => {
+      const serviceRequestCompare = String(
+        a.serviceRequestId?._id || a.serviceRequestId
+      ).localeCompare(String(b.serviceRequestId?._id || b.serviceRequestId));
 
+      if (serviceRequestCompare !== 0) return serviceRequestCompare;
+
+      const userCompare = String(a.user_id?._id || a.user_id).localeCompare(
+        String(b.user_id?._id || b.user_id)
+      );
+
+      if (userCompare !== 0) return userCompare;
+
+      return new Date(a.date) - new Date(b.date);
+    });
     // Calculate opening balance from entries BEFORE the first date
     let openingBalance = 0;
     const firstEntryDate = allEntries[0]?.date;
@@ -106,14 +129,18 @@ async function getLedger(req, res) {
           createdAt: {
             $lt: firstEntryDate,
           },
-          ...req?.query,
+          ...rest,
           paymentStatus: "Approved",
-        }).lean(),
+        })
+          .populate(["serviceRequestId", "user_id"])
+          .lean(),
         ExpenseModel.find({
           createdAt: { $lt: firstEntryDate },
-          ...req?.query,
+          ...rest,
           expenseStatus: "Paid",
-        }).lean(),
+        })
+          .populate(["serviceRequestId", "user_id"])
+          .lean(),
       ]);
 
       const totalCredits = oldCredits.reduce(
