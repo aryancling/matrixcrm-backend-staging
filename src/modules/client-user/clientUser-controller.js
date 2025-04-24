@@ -100,9 +100,10 @@ const getUsersByQuery = async (req, res) => {
 // Get a single user by ID
 const getClientUserById = async (req, res) => {
   try {
-    const user = await ClientUserModal.findById(req.params.id).populate(
-      "reporting_to"
-    );
+    const user = await ClientUserModal.findById(req.params.id).populate([
+      "reporting_to",
+      "clientId",
+    ]);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -116,9 +117,11 @@ const getClientUserById = async (req, res) => {
 const getClientUserByClientId = async (req, res) => {
   try {
     const { id: clientId } = req.params;
-    const user = await ClientUserModal.find({ clientId }).sort({
-      createdAt: -1,
-    });
+    const user = await ClientUserModal.find({ clientId })
+      .sort({
+        createdAt: -1,
+      })
+      .populate("clientId");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -136,7 +139,7 @@ const getClientUserByClientIdWithoutAdmin = async (req, res) => {
       clientId,
       user_type: { $ne: "admin" },
     })
-      .populate("reporting_to")
+      .populate(["reporting_to", "clientId"])
       .sort({ createdAt: -1 });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -206,6 +209,8 @@ const getClientUsersForServicePartner = async (req, res) => {
         $replaceRoot: { newRoot: "$client_users" },
       },
     ]);
+
+    console.log(users, "usersusers");
 
     return res.status(200).json(users);
   } catch (error) {

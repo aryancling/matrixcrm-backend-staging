@@ -110,7 +110,14 @@ const getRequestById = async (req, res) => {
       .populate("servicePartnerId")
       .populate("branch_id")
       .populate("clientUserId")
-      .populate("users")
+      .populate({
+        path: "users",
+        populate: [
+          {
+            path: "role",
+          },
+        ],
+      })
       .populate({
         path: "quotation",
         populate: [
