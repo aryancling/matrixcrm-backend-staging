@@ -54,13 +54,21 @@ async function updateExpenseStatus(req, res) {
 }
 async function getLedger(req, res) {
   try {
-    const { from_date, to_date, ...rest } = req?.query;
+    const { from_date, to_date, servicePartnerId, ...rest } = req?.query;
 
     const dateFilter = {};
     if (from_date || to_date) {
       dateFilter.createdAt = {};
-      if (from_date) dateFilter.createdAt.$gte = new Date(from_date);
-      if (to_date) dateFilter.createdAt.$lte = new Date(to_date);
+      if (from_date) {
+        const startOfDay = new Date(from_date);
+        startOfDay.setHours(0, 0, 0, 0);
+        dateFilter.createdAt.$gte = startOfDay;
+      }
+      if (to_date) {
+        const endOfDay = new Date(to_date);
+        endOfDay.setHours(23, 59, 59, 999);
+        dateFilter.createdAt.$lte = endOfDay;
+      }
     }
 
     const payments = await PaymentModel.find({
@@ -68,40 +76,56 @@ async function getLedger(req, res) {
       ...dateFilter,
       paymentStatus: "Paid",
     })
-      .populate(["serviceRequestId", "user_id"])
+      .populate({
+        path: "serviceRequestId",
+        match: { servicePartnerId },
+      })
+      .populate({
+        path: "user_id",
+      })
       .lean();
     const expenses = await ExpenseModel.find({
       ...rest,
       ...dateFilter,
       expenseStatus: "Approved",
     })
-      .populate(["serviceRequestId", "user_id"])
+      .populate({
+        path: "serviceRequestId",
+        match: { servicePartnerId },
+      })
+      .populate({
+        path: "user_id",
+      })
       .lean();
 
     console.log(payments, expenses);
 
     // Format ledger entries
-    const paymentEntries = payments.map((payment) => ({
-      date: payment.createdAt,
-      type: "Credit",
-      source: "Payment",
-      status: payment.paymentStatus,
-      user_id: payment.user_id,
-      serviceRequestId: payment.serviceRequestId,
-      amount: payment.approved_amount ?? payment.amount,
-      desc: payment.desc,
-    }));
+    const paymentEntries = payments
+      ?.filter((item) => item?.serviceRequestId)
+      .map((payment) => ({
+        date: payment.createdAt,
+        type: "Credit",
+        source: "Payment",
+        status: payment.paymentStatus,
+        user_id: payment.user_id,
+        serviceRequestId: payment.serviceRequestId,
+        amount: payment.approved_amount ?? payment.amount,
+        desc: payment.desc,
+      }));
 
-    const expenseEntries = expenses.map((expense) => ({
-      date: expense.createdAt,
-      type: "Debit",
-      source: "Expense",
-      status: expense.expenseStatus,
-      user_id: expense.user_id,
-      serviceRequestId: expense.serviceRequestId,
-      amount: expense.approved_amount ?? expense.amount,
-      desc: expense.desc,
-    }));
+    const expenseEntries = expenses
+      ?.filter((item) => item?.serviceRequestId)
+      .map((expense) => ({
+        date: expense.createdAt,
+        type: "Debit",
+        source: "Expense",
+        status: expense.expenseStatus,
+        user_id: expense.user_id,
+        serviceRequestId: expense.serviceRequestId,
+        amount: expense.approved_amount ?? expense.amount,
+        desc: expense.desc,
+      }));
 
     // Combine and sort all entries by date
     const allEntries = [...paymentEntries, ...expenseEntries].sort((a, b) => {
@@ -132,25 +156,35 @@ async function getLedger(req, res) {
           ...rest,
           paymentStatus: "Approved",
         })
-          .populate(["serviceRequestId", "user_id"])
+          .populate({
+            path: "serviceRequestId",
+            match: { servicePartnerId },
+          })
+          .populate({
+            path: "user_id",
+          })
           .lean(),
         ExpenseModel.find({
           createdAt: { $lt: firstEntryDate },
           ...rest,
           expenseStatus: "Paid",
         })
-          .populate(["serviceRequestId", "user_id"])
+          .populate({
+            path: "serviceRequestId",
+            match: { servicePartnerId },
+          })
+          .populate({
+            path: "user_id",
+          })
           .lean(),
       ]);
 
-      const totalCredits = oldCredits.reduce(
-        (sum, p) => sum + (p.approved_amount ?? p.amount),
-        0
-      );
-      const totalDebits = oldDebits.reduce(
-        (sum, e) => sum + (e.approved_amount ?? e.amount),
-        0
-      );
+      const totalCredits = oldCredits
+        ?.filter((item) => item?.serviceRequestId)
+        .reduce((sum, p) => sum + (p.approved_amount ?? p.amount), 0);
+      const totalDebits = oldDebits
+        ?.filter((item) => item?.serviceRequestId)
+        .reduce((sum, e) => sum + (e.approved_amount ?? e.amount), 0);
       openingBalance = totalCredits - totalDebits;
     }
 

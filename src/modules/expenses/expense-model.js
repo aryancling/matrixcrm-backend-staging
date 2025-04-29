@@ -8,6 +8,10 @@ const Status = {
 };
 const ExpenseSchema = new mongoose.Schema(
   {
+    servicePartnerId: {
+      type: mongoose.Types.ObjectId,
+      ref: "ServicePartner",
+    },
     serviceRequestId: {
       type: mongoose.Types.ObjectId,
       ref: "ServiceRequest",
