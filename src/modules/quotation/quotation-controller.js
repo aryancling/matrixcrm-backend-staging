@@ -11,7 +11,7 @@ const createQuotation = async (req, res) => {
   try {
     const {
       serviceRequestId,
-      rcs,
+      rcs: rcsList,
       non_rcs,
       non_existing_items,
       total_amount,
@@ -30,6 +30,7 @@ const createQuotation = async (req, res) => {
     }
 
     let non_rcs_new = non_rcs?.length ? [...non_rcs] : [];
+    let rcs = rcsList?.length ? [...rcsList] : [];
     if (non_existing_items?.length) {
       for (let i = 0; i < non_existing_items.length; i++) {
         const item = non_existing_items[i];
@@ -54,9 +55,12 @@ const createQuotation = async (req, res) => {
               clientId: serviceRequest?.clientId,
               servicePartnerId: serviceRequest?.servicePartnerId,
             });
-            console.log(rcAdded, "rcAddedrcAdded");
+            rcs.push({
+              rc_id: rcAdded?._id?.toString(),
+              qty: item.qty,
+              remarks: item.remarks,
+            });
           }
-
           non_rcs_new.push({
             inventory_id: itemAdded?._id?.toString(),
             qty: item.qty,
@@ -87,6 +91,8 @@ const createQuotation = async (req, res) => {
       .status(201)
       .json({ message: "Quotation created successfully.", data: quotation });
   } catch (error) {
+    console.log(error, "error");
+
     res
       .status(500)
       .json({ message: "Error creating quotation.", error: error.message });
