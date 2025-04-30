@@ -31,6 +31,7 @@ const createQuotation = async (req, res) => {
 
     let non_rcs_new = non_rcs?.length ? [...non_rcs] : [];
     let rcs = rcsList?.length ? [...rcsList] : [];
+
     if (non_existing_items?.length) {
       for (let i = 0; i < non_existing_items.length; i++) {
         const item = non_existing_items[i];
@@ -60,12 +61,13 @@ const createQuotation = async (req, res) => {
               qty: item.qty,
               remarks: item.remarks,
             });
+          } else {
+            non_rcs_new.push({
+              inventory_id: itemAdded?._id?.toString(),
+              qty: item.qty,
+              remarks: item.remarks,
+            });
           }
-          non_rcs_new.push({
-            inventory_id: itemAdded?._id?.toString(),
-            qty: item.qty,
-            remarks: item.remarks,
-          });
         }
       }
     }
@@ -174,30 +176,90 @@ const updateQuotation = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { non_rcs, non_existing_items, servicePartnerId, ...rest } =
-      req?.body;
+    const {
+      serviceRequestId,
+      rcs: rcsList,
+      non_rcs,
+      non_existing_items,
+      servicePartnerId,
+      ...rest
+    } = req?.body;
+
+    const serviceRequest = await ServiceRequestModal.findById(
+      serviceRequestId
+    ).populate("clientId");
+
+    if (!serviceRequest) {
+      return res.status(404).json({ message: "Service Request not found." });
+    }
 
     let non_rcs_new = non_rcs?.length ? [...non_rcs] : [];
+    let rcs = rcsList?.length ? [...rcsList] : [];
+
+    console.log(non_existing_items, "non_existing_items");
+    console.log(rcs, "rcs");
+
     if (non_existing_items?.length) {
-      const items = await ItemModel.insertMany(
-        non_existing_items?.map((item) => ({
+      for (let i = 0; i < non_existing_items.length; i++) {
+        const item = non_existing_items[i];
+        console.log(item, "itemmm");
+
+        const itemAdded = await ItemModel.create({
           ...item,
-          servicePartnerId,
-        }))
-      );
-      non_rcs_new = [
-        ...non_rcs,
-        ...items.map((item) => ({
-          inventory_id: item?._id?.toString(),
-          qty: item.qty,
-          remarks: item.remarks,
-        })),
-      ];
+          servicePartnerId: serviceRequest?.servicePartnerId,
+        });
+
+        console.log(itemAdded, "itemAdded");
+
+        if (itemAdded?._id) {
+          if (item?.rc && !item?.rc_id) {
+            const rcAdded = await RcModal.create({
+              rc_number: item?.rc,
+              inventory_id: itemAdded?._id,
+              finished_goods: "",
+              rate: item?.rate,
+              gstPercentage: item?.gstPercentage,
+              unit: item?.unit,
+              clientId: serviceRequest?.clientId,
+              servicePartnerId: serviceRequest?.servicePartnerId,
+            });
+            rcs.push({
+              rc_id: rcAdded?._id?.toString(),
+              qty: item.qty,
+              remarks: item.remarks,
+            });
+          } else {
+            non_rcs_new.push({
+              inventory_id: itemAdded?._id?.toString(),
+              qty: item.qty,
+              remarks: item.remarks,
+            });
+          }
+        }
+      }
     }
+
+    // let non_rcs_new = non_rcs?.length ? [...non_rcs] : [];
+    // if (non_existing_items?.length) {
+    //   const items = await ItemModel.insertMany(
+    //     non_existing_items?.map((item) => ({
+    //       ...item,
+    //       servicePartnerId,
+    //     }))
+    //   );
+    //   non_rcs_new = [
+    //     ...non_rcs,
+    //     ...items.map((item) => ({
+    //       inventory_id: item?._id?.toString(),
+    //       qty: item.qty,
+    //       remarks: item.remarks,
+    //     })),
+    //   ];
+    // }
 
     const updatedQuotation = await QuotationModel.findByIdAndUpdate(
       id,
-      { ...rest, non_rcs: non_rcs_new },
+      { ...rest, non_rcs: non_rcs_new, rcs },
       { new: true }
     );
 
@@ -210,6 +272,8 @@ const updateQuotation = async (req, res) => {
       data: updatedQuotation,
     });
   } catch (error) {
+    console.log(error, "error");
+
     res
       .status(500)
       .json({ message: "Error updating quotation.", error: error.message });
