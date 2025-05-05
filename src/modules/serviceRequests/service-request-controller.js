@@ -48,7 +48,8 @@ const getServiceRequestsByServicePartnerId = async (req, res) => {
       .populate("quotation")
       .populate("branch_id")
       .populate("users")
-      .populate("clientUserId");
+      .populate("clientUserId")
+      .sort({ createdAt: -1 });
 
     // Respond with the fetched data
     res.status(200).json({ data: requests });
@@ -72,7 +73,8 @@ const getServiceRequestsByClientId = async (req, res) => {
       .populate("quotation")
       .populate("clientUserId")
       .populate("branch_id")
-      .populate("users");
+      .populate("users")
+      .sort({ createdAt: -1 });
 
     // Respond with the fetched data
     res.status(200).json({ data: requests });
@@ -87,9 +89,9 @@ const getServiceRequestsByClientId = async (req, res) => {
 
 const getAllRequests = async (req, res) => {
   try {
-    const requests = await ServiceRequestModal.find(req?.query).populate(
-      "pmAssigned smAssigned quotation branch_id"
-    );
+    const requests = await ServiceRequestModal.find(req?.query)
+      .populate("pmAssigned smAssigned quotation branch_id")
+      .sort({ createdAt: -1 });
     res.status(200).json({ data: requests });
   } catch (error) {
     res.status(500).json({

@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const TimeLogSchema = new mongoose.Schema(
   {
+    task_id: {
+      type: mongoose.Types.ObjectId,
+      ref: "Tasks",
+    },
     serviceRequestId: {
       type: mongoose.Types.ObjectId,
       ref: "ServiceRequest",

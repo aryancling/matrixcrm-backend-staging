@@ -43,7 +43,7 @@ const deleteTimeLog = async (req, res) => {
 
 const punchIn = async (req, res) => {
   try {
-    const { serviceRequestId, user_id, punchInLocation } = req.body;
+    const { serviceRequestId, user_id, punchInLocation, task_id } = req.body;
 
     // Get the start of the day in IST (Indian Standard Time)
     const startOfDay = moment().startOf("day").locale("en-in").format();
@@ -53,7 +53,7 @@ const punchIn = async (req, res) => {
     const existingTimeLog = await TimeLog.findOne({
       createdAt: { $gte: startOfDay, $lte: endOfDay },
     });
-    if (existingTimeLog) {
+    if (existingTimeLog?.punchInTime && !existingTimeLog?.punchOutTime) {
       return res
         .status(400)
         .json({ message: "You have already punched in today." });
@@ -66,6 +66,7 @@ const punchIn = async (req, res) => {
       user_id,
       punchInTime,
       punchInLocation,
+      task_id,
     });
 
     await timeLog.save();
