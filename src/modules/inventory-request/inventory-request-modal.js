@@ -25,6 +25,12 @@ const InventoryRequestSchema = new mongoose.Schema(
         unit: { type: String },
       },
     ],
+    status: {
+      type: String,
+      required: true,
+      default: "Pending",
+      enum: ["Pending", "Fulfilled", "Rejected"],
+    },
   },
   {
     timestamps: true,

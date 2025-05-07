@@ -83,17 +83,31 @@ const getAllItems = async (req, res) => {
     const items = await ItemModel.aggregate([
       {
         $addFields: {
-          servicePartnerId: {
-            $toString: "$servicePartnerId",
-          },
+          servicePartnerId: { $toString: "$servicePartnerId" },
         },
       },
       { $match: query },
       {
         $lookup: {
           from: "inventories",
-          localField: "_id",
-          foreignField: "inventory_id",
+          let: { itemId: "$_id" },
+          pipeline: [
+            { $unwind: "$items" },
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$items.inventory_id", "$$itemId"],
+                },
+              },
+            },
+            {
+              $project: {
+                record_type: 1,
+                "items.qty_in": 1,
+                "items.qty_out": 1,
+              },
+            },
+          ],
           as: "inventoryData",
         },
       },
@@ -107,7 +121,7 @@ const getAllItems = async (req, res) => {
                 in: {
                   $cond: [
                     { $eq: ["$$inv.record_type", "inventory_in"] },
-                    "$$inv.qty_in",
+                    "$$inv.items.qty_in",
                     0,
                   ],
                 },
@@ -122,7 +136,7 @@ const getAllItems = async (req, res) => {
                 in: {
                   $cond: [
                     { $eq: ["$$inv.record_type", "inventory_out"] },
-                    "$$inv.qty_out",
+                    "$$inv.items.qty_out",
                     0,
                   ],
                 },
@@ -148,11 +162,12 @@ const getAllItems = async (req, res) => {
 
     res.status(200).json({ data: items });
   } catch (error) {
-    console.log(error, "error");
+    console.log("getAllItems error:", error);
 
-    res
-      .status(500)
-      .json({ message: "Error fetching items.", error: error.message });
+    res.status(500).json({
+      message: "Error fetching items.",
+      error: error.message,
+    });
   }
 };
 

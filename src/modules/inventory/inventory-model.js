@@ -8,25 +8,6 @@ const InventorySchema = new mongoose.Schema(
       ref: "ServicePartner",
       required: true,
     },
-    supplier_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Supplier",
-    },
-    inventory_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Item",
-      required: true,
-    },
-    qty_in: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-    qty_out: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
     record_type: {
       type: String,
       enum: ["inventory_in", "inventory_out"],
@@ -49,7 +30,31 @@ const InventorySchema = new mongoose.Schema(
     bill_no: String,
     bill_date: Date,
     person_name: String,
-    remarks: String,
+    supplier_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Supplier",
+    },
+
+    items: [
+      {
+        inventory_id: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Item",
+          required: true,
+        },
+        qty_in: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
+        qty_out: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
+        remarks: String,
+      },
+    ],
   },
   {
     timestamps: true,
