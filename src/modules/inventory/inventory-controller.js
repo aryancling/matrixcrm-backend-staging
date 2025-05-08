@@ -1,6 +1,9 @@
 const { default: mongoose } = require("mongoose");
 const AssignServiceModel = require("../assign-serivce/assign-service-model");
 const InventoryModel = require("./inventory-model");
+const {
+  InventoryRequestModal,
+} = require("../inventory-request/inventory-request-modal");
 
 const createInventory = async (req, res) => {
   try {
@@ -17,6 +20,7 @@ const createInventory = async (req, res) => {
     ) {
       const firstInventory = req?.body?.inventories?.[0];
       const inventory_in_to_add = {
+        inventory_request_id: firstInventory?.inventory_request_id,
         servicePartnerId: firstInventory?.servicePartnerId,
         record_type: firstInventory?.record_type,
         inventory_type: firstInventory?.inventory_type,
@@ -39,6 +43,7 @@ const createInventory = async (req, res) => {
       inventoriesOut = req?.body?.inventories?.map((inventory) => ({
         servicePartnerId: inventory?.servicePartnerId,
         inventory_id: inventory?.inventory_id,
+        inventory_request_id: inventory?.inventory_request_id,
         qty_in: 0,
         qty_out: inventory?.qty_in,
         service_request: inventory?.service_request,
@@ -52,6 +57,7 @@ const createInventory = async (req, res) => {
       const inventory_out_to_add = {
         servicePartnerId: firstInventoryOut?.servicePartnerId,
         service_request: firstInventoryOut?.service_request,
+        inventory_request_id: firstInventoryOut?.inventory_request_id,
         inventory_type: firstInventoryOut?.inventory_type,
         record_type: firstInventoryOut?.record_type,
         items: inventoriesOut?.map((inventory) => ({
@@ -68,6 +74,7 @@ const createInventory = async (req, res) => {
         servicePartnerId: firstInventory?.servicePartnerId,
         record_type: firstInventory?.record_type,
         inventory_type: firstInventory?.inventory_type,
+        inventory_request_id: firstInventory?.inventory_request_id,
         service_request: firstInventory?.service_request,
         received_by: firstInventory?.received_by,
         is_godown: firstInventory?.is_godown,
@@ -83,6 +90,14 @@ const createInventory = async (req, res) => {
         })),
       };
       await InventoryModel.create(inventory_in_to_add);
+    }
+
+    if (req?.body?.inventories?.[0]?.inventory_request_id) {
+      InventoryRequestModal.findOneAndUpdate(
+        { _id: req?.body?.inventories?.[0]?.inventory_request_id },
+        { status: "Fulfilled" },
+        { new: true }
+      );
     }
 
     const inventory_out_to_issue = is_not_godown
@@ -143,6 +158,7 @@ const getAllInventories = async (req, res) => {
     const query = { ...req.query };
 
     const objectIdFields = [
+      "inventory_request_id",
       "supplier_id",
       "received_by",
       "service_request",
@@ -169,6 +185,20 @@ const getAllInventories = async (req, res) => {
         },
       },
       { $unwind: { path: "$supplier_id", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "inventoryrequests",
+          localField: "inventory_request_id",
+          foreignField: "_id",
+          as: "inventory_request_id",
+        },
+      },
+      {
+        $unwind: {
+          path: "$inventory_request_id",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
 
       // Lookup User
       {

@@ -16,6 +16,7 @@ async function getAllPermissions(req, res) {
           "assign",
           "view",
           "request",
+          "view_requests",
           "manage_items",
           "view_inventory_in",
           "view_inventory_out",

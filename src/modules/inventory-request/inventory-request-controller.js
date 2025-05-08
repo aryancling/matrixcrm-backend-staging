@@ -22,9 +22,11 @@ const createInventoryRequest = async (req, res) => {
 const getAllInventoryRequests = async (req, res) => {
   try {
     const query = req?.query;
-    const inventoryRequests = await InventoryRequestModal.find(query).sort({
-      createdAt: -1,
-    });
+    const inventoryRequests = await InventoryRequestModal.find(query)
+      .sort({
+        createdAt: -1,
+      })
+      .populate(["items.item", "servicePartnerId", "serviceRequestId"]);
 
     sendSuccessResponse(res, {
       data: inventoryRequests,

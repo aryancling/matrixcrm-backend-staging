@@ -3,6 +3,10 @@ const mongoose = require("mongoose");
 // Define the Inventory schema
 const InventorySchema = new mongoose.Schema(
   {
+    inventory_request_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "InventoryRequest",
+    },
     servicePartnerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "ServicePartner",
