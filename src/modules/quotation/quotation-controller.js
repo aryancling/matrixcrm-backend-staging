@@ -102,16 +102,208 @@ const createQuotation = async (req, res) => {
 };
 
 // Get all Quotations
+const mongoose = require("mongoose");
+
 const getAllQuotations = async (req, res) => {
   try {
-    const quotations = await QuotationModel.find()
-      .populate("serviceRequestId")
-      .sort({ createdAt: -1 });
+    let { servicePartnerId, serviceIds, ...rest } = req.query;
+
+    // Convert any _id fields in rest to ObjectId if needed
+    const matchStage = {};
+    for (const key in rest) {
+      matchStage[key] = mongoose.Types.ObjectId.isValid(rest[key])
+        ? new mongoose.Types.ObjectId(rest[key])
+        : rest[key];
+    }
+
+    const serviceQuery = serviceIds
+      ? { service_id: { $in: serviceIds?.split(",") } }
+      : {};
+
+    const aggregationPipeline = [
+      // Match serviceIds if provided
+      {
+        $addFields: {
+          service_id: {
+            $toString: "$serviceRequestId",
+          },
+        },
+      },
+      { $match: { ...matchStage, ...serviceQuery } },
+
+      // Lookup serviceRequestId
+      {
+        $lookup: {
+          from: "servicerequests",
+          localField: "serviceRequestId",
+          foreignField: "_id",
+          as: "serviceRequestId",
+        },
+      },
+      { $unwind: "$serviceRequestId" },
+
+      // Optional filter by servicePartnerId
+      ...(servicePartnerId
+        ? [
+            {
+              $match: {
+                "serviceRequestId.servicePartnerId":
+                  new mongoose.Types.ObjectId(servicePartnerId),
+              },
+            },
+          ]
+        : []),
+
+      // Lookups for serviceRequestId nested fields
+      {
+        $lookup: {
+          from: "branches",
+          localField: "serviceRequestId.branch_id",
+          foreignField: "_id",
+          as: "serviceRequestId.branch_id",
+        },
+      },
+      {
+        $lookup: {
+          from: "clients",
+          localField: "serviceRequestId.clientId",
+          foreignField: "_id",
+          as: "serviceRequestId.clientId",
+        },
+      },
+      {
+        $lookup: {
+          from: "servicepartners",
+          localField: "serviceRequestId.servicePartnerId",
+          foreignField: "_id",
+          as: "serviceRequestId.servicePartnerId",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "serviceRequestId.clientUserId",
+          foreignField: "_id",
+          as: "serviceRequestId.clientUserId",
+        },
+      },
+      // Flatten arrays
+      {
+        $addFields: {
+          "serviceRequestId.branch_id": {
+            $arrayElemAt: ["$serviceRequestId.branch_id", 0],
+          },
+          "serviceRequestId.clientId": {
+            $arrayElemAt: ["$serviceRequestId.clientId", 0],
+          },
+          "serviceRequestId.servicePartnerId": {
+            $arrayElemAt: ["$serviceRequestId.servicePartnerId", 0],
+          },
+          "serviceRequestId.clientUserId": {
+            $arrayElemAt: ["$serviceRequestId.clientUserId", 0],
+          },
+        },
+      },
+
+      // Lookup rcs.rc_id
+      {
+        $unwind: {
+          path: "$rcs",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "rcs",
+          localField: "rcs.rc_id",
+          foreignField: "_id",
+          as: "rcs.rc_id",
+        },
+      },
+      {
+        $unwind: {
+          path: "$rcs.rc_id",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "items",
+          localField: "rcs.rc_id.inventory_id",
+          foreignField: "_id",
+          as: "rcs.rc_id.inventory_id",
+        },
+      },
+      {
+        $addFields: {
+          "rcs.rc_id.inventory_id": {
+            $arrayElemAt: ["$rcs.rc_id.inventory_id", 0],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          doc: { $first: "$$ROOT" },
+          rcs: { $push: "$rcs" },
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: ["$doc", { rcs: "$rcs" }],
+          },
+        },
+      },
+
+      // Lookup non_rcs.inventory_id
+      {
+        $unwind: {
+          path: "$non_rcs",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "items",
+          localField: "non_rcs.inventory_id",
+          foreignField: "_id",
+          as: "non_rcs.inventory_id",
+        },
+      },
+      {
+        $addFields: {
+          "non_rcs.inventory_id": {
+            $arrayElemAt: ["$non_rcs.inventory_id", 0],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          doc: { $first: "$$ROOT" },
+          non_rcs: { $push: "$non_rcs" },
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: ["$doc", { non_rcs: "$non_rcs" }],
+          },
+        },
+      },
+
+      { $sort: { createdAt: -1 } },
+    ];
+
+    const quotations = await QuotationModel.aggregate(aggregationPipeline);
+
     res.status(200).json({ data: quotations });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error fetching quotations.", error: error.message });
+    res.status(500).json({
+      message: "Error fetching quotations.",
+      error: error.message,
+    });
   }
 };
 

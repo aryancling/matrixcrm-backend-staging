@@ -42,7 +42,7 @@ const QuotationSchema = new mongoose.Schema(
     ],
     total_amount: { type: Number, required: true },
     cgst: { type: Number },
-    cgst: { type: Number },
+    sgst: { type: Number },
     igst: { type: Number },
   },
   {
