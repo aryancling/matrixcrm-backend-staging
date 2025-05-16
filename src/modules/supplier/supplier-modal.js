@@ -2,11 +2,23 @@ const mongoose = require("mongoose");
 
 const SupplierSchema = new mongoose.Schema(
   {
+    type: { type: String, enum: ["Supplier", "Contractor"] },
     name: { type: String, required: true },
     email: { type: String, unigue: true },
     mobile: { type: Number, unique: true },
     supplier_code: { type: String, unique: true },
     gst_number: { type: String },
+    contact_name: { type: String },
+    ifsc_code: { type: String },
+    state: { type: String },
+    city: { type: String },
+    address: { type: String },
+    documents: [
+      {
+        url: String,
+        title: String,
+      },
+    ],
     servicePartnerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "ServicePartner",

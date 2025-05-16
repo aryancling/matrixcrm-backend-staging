@@ -109,15 +109,44 @@ async function checkIfNumberEmailUnique(mobile, email, _id = null) {
   };
 }
 
-function generateRequestNumber(prefix, clientName) {
-  if (!clientName.trim()) {
+async function generateRequestNumber(
+  prefix,
+  clientName,
+  Modal,
+  fieldName = "serviceNumber"
+) {
+  if (!clientName || !clientName.trim()) {
     throw new Error("Client name cannot be empty");
   }
 
-  const firstWord = clientName.split(" ")[0]; // Get the first word of the client name
-  const randomDigits = Math.floor(Math.random() * 9000) + 1000; // Generate a random 4-digit number
+  const cleanClient = clientName.trim().toUpperCase();
 
-  return `${prefix}-${firstWord.toUpperCase()}-${randomDigits}`;
+  const regexPattern = new RegExp(`^${prefix}-${cleanClient}-\\d+$`);
+
+  const lastEntry = await Modal.findOne({
+    [fieldName]: { $regex: regexPattern },
+  })
+    .sort({ createdAt: -1 })
+    .limit(1)
+    .exec();
+
+  let nextNumber = 1;
+
+  if (lastEntry && lastEntry[fieldName]) {
+    const parts = lastEntry[fieldName].split("-");
+    const lastNumStr = parts[2];
+    const lastNum = parseInt(lastNumStr, 10);
+    nextNumber = lastNum + 1;
+  }
+
+  const paddedNum =
+    nextNumber < 1000
+      ? String(nextNumber).padStart(4, "0")
+      : String(nextNumber);
+
+  const newRequestNumber = `${prefix}-${cleanClient}-${paddedNum}`;
+
+  return newRequestNumber;
 }
 
 const generatePDF = async (htmlContent) => {

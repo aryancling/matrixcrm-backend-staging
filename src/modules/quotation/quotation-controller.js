@@ -84,7 +84,9 @@ const createQuotation = async (req, res) => {
       igst,
       quotationNumber: generateRequestNumber(
         "QT",
-        serviceRequest?.clientId?.client_name
+        serviceRequest?.clientId?.client_name,
+        QuotationModel,
+        "quotationNumber"
       ),
     });
     await quotation.save();

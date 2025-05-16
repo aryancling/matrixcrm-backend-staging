@@ -210,6 +210,15 @@ const getAllInventories = async (req, res) => {
         },
       },
       { $unwind: { path: "$received_by", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "person_name",
+          foreignField: "_id",
+          as: "person_name",
+        },
+      },
+      { $unwind: { path: "$person_name", preserveNullAndEmptyArrays: true } },
 
       // Lookup ServiceRequest
       {
@@ -246,22 +255,109 @@ const getAllInventories = async (req, res) => {
       // Add item_total based on record_type
       {
         $addFields: {
-          "items.item_total": {
-            $cond: [
-              { $eq: ["$record_type", "inventory_in"] },
+          // Calculate GST rate value
+          "items.gstPercentage": {
+            $ifNull: ["$items.inventory_id.gstPercentage", 0],
+          },
+
+          // You can adjust the condition for inter/intra-state based on your business logic
+          "items.cgst": {
+            $divide: [
               {
                 $multiply: [
-                  "$items.qty_in",
+                  "$items.inventory_id.gstPercentage",
+                  {
+                    $ifNull: [
+                      {
+                        $cond: [
+                          { $eq: ["$record_type", "inventory_in"] },
+                          "$items.qty_in",
+                          "$items.qty_out",
+                        ],
+                      },
+                      0,
+                    ],
+                  },
                   { $ifNull: ["$items.inventory_id.rate", 0] },
                 ],
               },
-              {
-                $multiply: [
-                  "$items.qty_out",
-                  { $ifNull: ["$items.inventory_id.rate", 0] },
-                ],
-              },
+              200,
             ],
+          },
+          "items.sgst": {
+            $divide: [
+              {
+                $multiply: [
+                  "$items.inventory_id.gstPercentage",
+                  {
+                    $ifNull: [
+                      {
+                        $cond: [
+                          { $eq: ["$record_type", "inventory_in"] },
+                          "$items.qty_in",
+                          "$items.qty_out",
+                        ],
+                      },
+                      0,
+                    ],
+                  },
+                  { $ifNull: ["$items.inventory_id.rate", 0] },
+                ],
+              },
+              200,
+            ],
+          },
+          "items.igst": {
+            $divide: [
+              {
+                $multiply: [
+                  "$items.inventory_id.gstPercentage",
+                  {
+                    $ifNull: [
+                      {
+                        $cond: [
+                          { $eq: ["$record_type", "inventory_in"] },
+                          "$items.qty_in",
+                          "$items.qty_out",
+                        ],
+                      },
+                      0,
+                    ],
+                  },
+                  { $ifNull: ["$items.inventory_id.rate", 0] },
+                ],
+              },
+              100,
+            ],
+          },
+
+          "items.item_total": {
+            $let: {
+              vars: {
+                qty: {
+                  $ifNull: [
+                    {
+                      $cond: [
+                        { $eq: ["$record_type", "inventory_in"] },
+                        "$items.qty_in",
+                        "$items.qty_out",
+                      ],
+                    },
+                    0,
+                  ],
+                },
+                rate: { $ifNull: ["$items.inventory_id.rate", 0] },
+                gst: { $ifNull: ["$items.inventory_id.gstPercentage", 0] },
+              },
+              in: {
+                $add: [
+                  { $multiply: ["$$qty", "$$rate"] }, // base total
+                  {
+                    $divide: [{ $multiply: ["$$qty", "$$rate", "$$gst"] }, 100],
+                  }, // gst amount
+                ],
+              },
+            },
           },
         },
       },

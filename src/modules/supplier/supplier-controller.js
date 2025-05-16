@@ -20,6 +20,8 @@ const createSupplier = async (req, res) => {
       supplier: newSupplier,
     });
   } catch (error) {
+    console.log(error, "errorerror");
+
     return res
       .status(500)
       .json({ message: "Error Creating Supplier", error: error.message });

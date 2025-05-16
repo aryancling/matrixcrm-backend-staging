@@ -15,7 +15,12 @@ const createRequest = async (req, res) => {
     const newRequest = new ServiceRequestModal({
       clientId,
       ...rest,
-      serviceNumber: generateRequestNumber("SR", clientName?.client_name),
+      serviceNumber: generateRequestNumber(
+        "SR",
+        clientName?.client_name,
+        ServiceRequestModal,
+        "serviceNumber"
+      ),
     });
 
     await newRequest.save();

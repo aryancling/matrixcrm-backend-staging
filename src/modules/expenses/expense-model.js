@@ -33,6 +33,12 @@ const ExpenseSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    remark: {
+      type: String,
+    },
+    file: {
+      type: String,
+    },
     expenseStatus: {
       type: String,
       required: true,
