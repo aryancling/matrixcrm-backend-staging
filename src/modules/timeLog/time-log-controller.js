@@ -53,11 +53,11 @@ const punchIn = async (req, res) => {
     const existingTimeLog = await TimeLog.findOne({
       createdAt: { $gte: startOfDay, $lte: endOfDay },
     });
-    if (existingTimeLog?.punchInTime && !existingTimeLog?.punchOutTime) {
-      return res
-        .status(400)
-        .json({ message: "You have already punched in today." });
-    }
+    // if (existingTimeLog?.punchInTime && !existingTimeLog?.punchOutTime) {
+    //   return res
+    //     .status(400)
+    //     .json({ message: "You have already punched in today." });
+    // }
 
     const punchInTime = moment().locale("en-in").format();
 
