@@ -22,6 +22,7 @@ const QuotationSchema = new mongoose.Schema(
         remarks: {
           type: String,
         },
+        additional_description: String,
       },
     ],
     non_rcs: [
@@ -38,6 +39,7 @@ const QuotationSchema = new mongoose.Schema(
         remarks: {
           type: String,
         },
+        additional_description: String,
       },
     ],
     total_amount: { type: Number, required: true },

@@ -60,12 +60,14 @@ const createQuotation = async (req, res) => {
               rc_id: rcAdded?._id?.toString(),
               qty: item.qty,
               remarks: item.remarks,
+              additional_description: item.additional_description,
             });
           } else {
             non_rcs_new.push({
               inventory_id: itemAdded?._id?.toString(),
               qty: item.qty,
               remarks: item.remarks,
+              additional_description: item.additional_description,
             });
           }
         }
@@ -82,7 +84,7 @@ const createQuotation = async (req, res) => {
       cgst,
       sgst,
       igst,
-      quotationNumber: generateRequestNumber(
+      quotationNumber: await generateRequestNumber(
         "QT",
         serviceRequest?.clientId?.client_name,
         QuotationModel,
@@ -421,12 +423,14 @@ const updateQuotation = async (req, res) => {
               rc_id: rcAdded?._id?.toString(),
               qty: item.qty,
               remarks: item.remarks,
+              additional_description: item.additional_description,
             });
           } else {
             non_rcs_new.push({
               inventory_id: itemAdded?._id?.toString(),
               qty: item.qty,
               remarks: item.remarks,
+              additional_description: item.additional_description,
             });
           }
         }

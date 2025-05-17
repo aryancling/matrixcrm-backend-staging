@@ -104,7 +104,7 @@ async function getLedger(req, res) {
     const paymentEntries = payments
       ?.filter((item) => item?.serviceRequestId)
       .map((payment) => ({
-        date: payment.createdAt,
+        date: payment.updatedAt,
         type: "Credit",
         source: "Payment",
         status: payment.paymentStatus,
@@ -117,7 +117,7 @@ async function getLedger(req, res) {
     const expenseEntries = expenses
       ?.filter((item) => item?.serviceRequestId)
       .map((expense) => ({
-        date: expense.createdAt,
+        date: expense.updatedAt,
         type: "Debit",
         source: "Expense",
         status: expense.expenseStatus,

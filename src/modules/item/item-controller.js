@@ -12,6 +12,7 @@ const createItem = async (req, res) => {
       qty,
       rate,
       servicePartnerId,
+      additional_description,
     } = req.body;
 
     const newItem = new ItemModel({
@@ -23,6 +24,7 @@ const createItem = async (req, res) => {
       qty,
       rate,
       servicePartnerId,
+      additional_description,
     });
 
     await newItem.save();

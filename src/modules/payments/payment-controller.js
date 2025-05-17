@@ -32,14 +32,15 @@ async function getPaymentByServiceId(req, res) {
 // Update payment status
 async function updatePaymentStatus(req, res) {
   try {
-    const { paymentStatus, action_taken_by, approved_amount } = req.body;
+    const { paymentStatus, action_taken_by, approved_amount, remark } =
+      req.body;
     // Validate paymentStatus against Status constants
     if (!Object.values(Status).includes(paymentStatus)) {
       return res.status(400).json({ message: "Invalid payment status" });
     }
     const updatedPayment = await PaymentModel.findByIdAndUpdate(
       req.params.id,
-      { paymentStatus, action_taken_by, approved_amount },
+      { paymentStatus, action_taken_by, approved_amount, remark },
       { new: true }
     );
     if (!updatedPayment)

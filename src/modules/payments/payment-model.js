@@ -29,6 +29,9 @@ const PaymentSchema = new mongoose.Schema(
     approved_amount: {
       type: Number,
     },
+    remark: {
+      type: String,
+    },
     desc: {
       type: String,
       required: true,
