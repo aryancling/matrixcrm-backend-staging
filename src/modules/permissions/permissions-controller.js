@@ -37,6 +37,7 @@ async function getAllPermissions(req, res) {
           "assign_to_technician",
         ],
         after_photo: ["add", "view"],
+        before_photo: ["add", "view"],
         payment: [
           "request",
           "update",
