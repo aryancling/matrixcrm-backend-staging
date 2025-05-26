@@ -12,6 +12,9 @@ const {
   getClientUserByClientIdWithoutAdmin,
   getClientUsersForServicePartner,
 } = require("./clientUser-controller");
+const {
+  getSubordinates,
+} = require("../serviceRequests/service-request-controller");
 
 router.post("/create-client-user", createClientUser);
 router.post("/get-client-users-by-query", getUsersByQuery);
@@ -22,6 +25,7 @@ router.get(
 router.get("/get-all-client-user", getAllClientUsers);
 router.get("/get-client-user-by-id/:id", getClientUserById);
 router.get("/get-client-user-by-clientid/:id", getClientUserByClientId);
+router.get("/get-user-subtree", getSubordinates);
 router.get(
   "/get-client-user-by-clientid-without-admin/:id",
   getClientUserByClientIdWithoutAdmin

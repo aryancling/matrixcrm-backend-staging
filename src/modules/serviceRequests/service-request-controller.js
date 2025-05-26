@@ -1,5 +1,7 @@
+const { default: mongoose } = require("mongoose");
 const { generateRequestNumber } = require("../../utils/helpers");
 const AssignServiceModel = require("../assign-serivce/assign-service-model");
+const { ClientUserModal } = require("../client-user/clientUser-modal");
 const { ClientModel } = require("../client/client-model");
 const { ServiceRequestModal, Status } = require("./service-request-model");
 
@@ -103,6 +105,72 @@ const getAllRequests = async (req, res) => {
       message: "Error fetching Service Requests.",
       error: error.message,
     });
+  }
+};
+
+const getSubordinates = async (req, res) => {
+  try {
+    const { user_id, clientId } = req.query;
+
+    let clientQuery = {};
+    if (clientId) {
+      clientQuery = { clientId: new mongoose.Types.ObjectId(clientId) };
+    }
+
+    const result = await ClientUserModal.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(user_id),
+          ...clientQuery,
+        },
+      },
+      {
+        $graphLookup: {
+          from: "clientusers",
+          startWith: "$_id",
+          connectFromField: "_id",
+          connectToField: "reporting_to",
+          as: "subordinates",
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          designation: 1,
+          profileImage: 1,
+          reporting_to: 1,
+          subordinates: {
+            $map: {
+              input: "$subordinates",
+              as: "sub",
+              in: {
+                _id: "$$sub._id",
+                name: "$$sub.name",
+                designation: "$$sub.designation",
+                profileImage: "$$sub.profileImage",
+                reporting_to: "$$sub.reporting_to",
+              },
+            },
+          },
+        },
+      },
+    ]);
+
+    console.log(result, "resultresult");
+
+    if (!result.length) {
+      return res
+        .status(404)
+        .json({ error: "User not found or no subordinates." });
+    }
+
+    const [mainUser] = result;
+    const allUsers = [mainUser, ...mainUser.subordinates];
+    res.status(200).json(allUsers);
+  } catch (error) {
+    console.error("Error fetching subordinates:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -454,6 +522,33 @@ const addAfterImagesForRequest = async (req, res) => {
       .json({ message: "Error adding after-images.", error: error.message });
   }
 };
+const addBeforeImagesForRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { beforeImages } = req.body;
+
+    const updatedRequest = await ServiceRequestModal.findByIdAndUpdate(
+      id,
+      { $push: { beforeImages: { $each: beforeImages } } },
+      { new: true }
+    );
+
+    if (!updatedRequest) {
+      return res
+        .status(404)
+        .json({ message: "Service Request not found.", error: error.message });
+    }
+
+    res.status(200).json({
+      message: "Before images added successfully.",
+      data: updatedRequest,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error adding before-images.", error: error.message });
+  }
+};
 
 // Function to update quotation approval status
 const updateQuotationApprovalStatus = async (req, res) => {
@@ -483,6 +578,66 @@ const updateQuotationApprovalStatus = async (req, res) => {
   }
 };
 
+const getServiceRequestsByUserHierarchy = async (req, res) => {
+  const { user_id, servicePartnerId, clientId } = req.query;
+
+  try {
+    const query = {};
+
+    if (user_id) {
+      const hierarchy = await ClientUserModal.aggregate([
+        {
+          $match: { _id: new mongoose.Types.ObjectId(user_id) },
+        },
+        {
+          $graphLookup: {
+            from: "clientusers",
+            startWith: "$_id",
+            connectFromField: "_id",
+            connectToField: "reporting_to",
+            as: "subordinates",
+          },
+        },
+        {
+          $project: {
+            allUserIds: {
+              $concatArrays: [["$_id"], "$subordinates._id"],
+            },
+          },
+        },
+      ]);
+
+      const allUserIds = hierarchy?.[0]?.allUserIds || [];
+      console.log(allUserIds, "allUserIds");
+
+      query.clientUserId = { $in: allUserIds };
+    }
+
+    if (servicePartnerId) {
+      query.servicePartnerId = new mongoose.Types.ObjectId(servicePartnerId);
+    }
+    if (clientId) {
+      query.clientId = new mongoose.Types.ObjectId(clientId);
+    }
+
+    const serviceRequests = await ServiceRequestModal.find(query)
+      .populate("clientId")
+      .populate("clientUserId")
+      .populate("servicePartnerId")
+      .populate("pmAssigned")
+      .populate("smAssigned")
+      .populate("quotation")
+      .populate("branch_id")
+      .populate("users")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json(serviceRequests);
+  } catch (error) {
+    console.error("Error fetching service requests:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   createRequest,
   getAllRequests,
@@ -496,4 +651,7 @@ module.exports = {
   getServiceRequestsByServicePartnerId,
   getServiceRequestsByClientId,
   assignToUser,
+  addBeforeImagesForRequest,
+  getSubordinates,
+  getServiceRequestsByUserHierarchy,
 };

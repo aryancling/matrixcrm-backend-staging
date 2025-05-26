@@ -14,6 +14,8 @@ const {
   getServiceRequestsByServicePartnerId,
   getServiceRequestsByClientId,
   assignToUser,
+  addBeforeImagesForRequest,
+  getServiceRequestsByUserHierarchy,
 } = require("./service-request-controller");
 
 router.post("/create-Request", createRequest);
@@ -26,11 +28,16 @@ router.post("/quotation-status/:id", updateQuotationApprovalStatus);
 router.get("/get-service-details/:serviceRequestId", getServiceRequestDetails);
 router.post("/quotation/:id", addOrUpdateQuotationForRequest);
 router.post("/after-images/:id", addAfterImagesForRequest);
+router.post("/before-images/:id", addBeforeImagesForRequest);
 router.get(
   "/get-by-service-partner-id/:servicePartnerId",
   getServiceRequestsByServicePartnerId
 );
 router.get("/get-by-client-id/:clientId", getServiceRequestsByClientId);
+router.get(
+  "/service-requests-by-user-hierarchy",
+  getServiceRequestsByUserHierarchy
+);
 router.post("/uploadImage", uploadImage);
 
 module.exports = router;
