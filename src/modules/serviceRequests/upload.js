@@ -44,14 +44,17 @@ const uploadImage = async (req, res) => {
           message: "File uploaded successfully",
           data: url,
         }),
-      (err) =>
+      (err) => {
+        console.log(err, "errerr");
+
         res.status(500).send({
           status: "failed",
           message: err?.message || "Upload failed due to server error.",
-        })
+        });
+      }
     );
   } catch (error) {
-    console.log(error);
+    console.log(error, "uploadError");
     res.status(500).json({ success: false, message: error.message });
   }
 };

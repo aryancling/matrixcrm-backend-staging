@@ -1,4 +1,4 @@
-const s3 = require('../../config/aws-config');
+const s3 = require("../../config/aws-config");
 
 module.exports = {
   uploadFile: async (
@@ -18,6 +18,8 @@ module.exports = {
       successCallback(data?.Location);
       return data;
     } catch (err) {
+      console.log(err, "s3Error");
+
       failCallback(err);
     }
   },

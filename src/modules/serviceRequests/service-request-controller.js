@@ -517,6 +517,7 @@ const addAfterImagesForRequest = async (req, res) => {
       data: updatedRequest,
     });
   } catch (error) {
+    console.log(error, "errorAfter");
     res
       .status(500)
       .json({ message: "Error adding after-images.", error: error.message });
@@ -544,6 +545,8 @@ const addBeforeImagesForRequest = async (req, res) => {
       data: updatedRequest,
     });
   } catch (error) {
+    console.log(error, "errorBefore");
+
     res
       .status(500)
       .json({ message: "Error adding before-images.", error: error.message });
