@@ -3,11 +3,15 @@ const { uploadFile } = require("../../utils/uploadFile");
 
 const uploadImage = async (req, res) => {
   try {
+    console.log(req.body, "req.bodyreq.body");
+
     const {
       base64String,
       folder = "images",
       fileType = "image/jpeg",
     } = req.body;
+
+    console.log(base64String, "req.bodyreq.body");
 
     if (!base64String || typeof base64String !== "string") {
       return res.status(400).json({
@@ -26,6 +30,7 @@ const uploadImage = async (req, res) => {
     console.log(ext, "ext");
 
     const file = Buffer.from(base64Data, "base64");
+    console.log(file, "filefile");
 
     const key = `uploads/${folder}/${Date.now()}.${ext}`;
 
@@ -35,6 +40,8 @@ const uploadImage = async (req, res) => {
       contentEncoding: "base64",
       contentType: fileType,
     };
+
+    console.log(uploadParams, "uploadParams");
 
     uploadFile(
       uploadParams,
