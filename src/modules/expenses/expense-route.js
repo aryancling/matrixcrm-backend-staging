@@ -5,9 +5,11 @@ const {
   getExpenseByServiceId,
   updateExpenseStatus,
   getLedger,
+  getExpensesByQuery,
 } = require("./expense-controller");
 router.post("/create-expenses", createExpense);
 router.get("/service/:serviceId", getExpenseByServiceId);
+router.get("/get-by-query", getExpensesByQuery);
 router.post("/update-by-Id/:id", updateExpenseStatus);
 router.get("/get-ledger", getLedger);
 

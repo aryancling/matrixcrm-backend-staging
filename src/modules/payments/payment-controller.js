@@ -28,6 +28,19 @@ async function getPaymentByServiceId(req, res) {
       .json({ message: "Error Getting Payments", error: error.message });
   }
 }
+async function getPaymentsByQuery(req, res) {
+  try {
+    const payments = await PaymentModel.find(req?.query)
+      .populate(["serviceRequestId", "user_id", "action_taken_by"])
+      .sort({ createdAt: -1 });
+
+    res.json(payments);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error Getting Payments", error: error.message });
+  }
+}
 
 // Update payment status
 async function updatePaymentStatus(req, res) {
@@ -56,5 +69,6 @@ async function updatePaymentStatus(req, res) {
 module.exports = {
   createPayment,
   getPaymentByServiceId,
+  getPaymentsByQuery,
   updatePaymentStatus,
 };
