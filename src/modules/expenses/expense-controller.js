@@ -29,6 +29,19 @@ async function getExpenseByServiceId(req, res) {
       .json({ message: "Error Getting Expenses", error: error.message });
   }
 }
+async function getExpensesByQuery(req, res) {
+  try {
+    const expenses = await ExpenseModel.find(req?.query)
+      .populate(["serviceRequestId", "user_id", "action_taken_by"])
+      .sort({ createdAt: -1 });
+
+    res.json(expenses);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error Getting Expenses", error: error.message });
+  }
+}
 
 // Update expense status
 async function updateExpenseStatus(req, res) {
@@ -219,6 +232,7 @@ async function getLedger(req, res) {
 module.exports = {
   createExpense,
   getExpenseByServiceId,
+  getExpensesByQuery,
   updateExpenseStatus,
   getLedger,
 };
