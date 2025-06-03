@@ -121,7 +121,11 @@ async function generateRequestNumber(
 
   const cleanClient = clientName.trim().toUpperCase();
 
+  console.log(cleanClient, "cleanClient");
+
   const regexPattern = new RegExp(`^${prefix}-${cleanClient}-\\d+$`);
+
+  console.log(regexPattern, "regexPattern");
 
   const lastEntry = await Modal.findOne({
     [fieldName]: { $regex: regexPattern },
@@ -130,13 +134,19 @@ async function generateRequestNumber(
     .limit(1)
     .exec();
 
+  console.log(lastEntry, "lastEntry");
+
   let nextNumber = 1;
 
   if (lastEntry && lastEntry[fieldName]) {
     const parts = lastEntry[fieldName].split("-");
-    const lastNumStr = parts[2];
+    const lastNumStr = parts[parts.length - 1];
     const lastNum = parseInt(lastNumStr, 10);
     nextNumber = lastNum + 1;
+    console.log(parts, "parts");
+    console.log(lastNumStr, "lastNumStr");
+    console.log(lastNum, "lastNum");
+    console.log(nextNumber, "nextNumber");
   }
 
   const paddedNum =

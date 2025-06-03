@@ -39,7 +39,7 @@ const sendOtp = async (req, res) => {
     otplib.authenticator.options = { digits: 6 };
     const otp = otplib.authenticator.generate(process.env.OTP_SECRET);
     const otpExpires = new Date();
-    otpExpires.setMinutes(otpExpires.getMinutes() + 10);
+    otpExpires.setMinutes(otpExpires.getMinutes() + 30);
 
     let otpRecord = await OtpModel.findOne({ phoneNumber });
 
@@ -47,11 +47,25 @@ const sendOtp = async (req, res) => {
       if (new Date() > otpRecord.otpExpires) {
         await otpRecord.deleteOne();
       } else {
+        sendEmail({
+          recipientEmail: user?.email || clientUser?.email,
+          ccEmails: ["mi2005.delhi@gmail.com"],
+          subject: "OTP for login",
+          body: `Your OTP for login is ${otp}. This OTP is valid for 10 minutes.`,
+        });
+        otpRecord = new OtpModel({
+          phoneNumber,
+          otp,
+          otpExpires,
+        });
+
+        await otpRecord.save();
         res.json({
           message: "OTP sent to the registered email address",
           otp: otpRecord?.otp, // Include the OTP in the response
           data: { phoneNumber: otpRecord?.phoneNumber },
         });
+        return;
       }
     }
 

@@ -29,6 +29,7 @@ const createInventory = async (req, res) => {
         is_godown: firstInventory?.is_godown,
         bill_no: firstInventory?.bill_no,
         bill_date: firstInventory?.bill_date,
+        bill_attachment: firstInventory?.bill_attachment,
         person_name: firstInventory?.person_name,
         supplier_id: firstInventory?.supplier_id,
         items: req?.body?.inventories?.map((inventory) => ({
@@ -80,6 +81,7 @@ const createInventory = async (req, res) => {
         is_godown: firstInventory?.is_godown,
         bill_no: firstInventory?.bill_no,
         bill_date: firstInventory?.bill_date,
+        bill_attachment: firstInventory?.bill_attachment,
         person_name: firstInventory?.person_name,
         supplier_id: firstInventory?.supplier_id,
         items: req?.body?.inventories?.map((inventory) => ({

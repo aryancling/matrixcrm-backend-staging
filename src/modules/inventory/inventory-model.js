@@ -33,6 +33,7 @@ const InventorySchema = new mongoose.Schema(
     },
     bill_no: String,
     bill_date: Date,
+    bill_attachment: String,
     person_name: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
