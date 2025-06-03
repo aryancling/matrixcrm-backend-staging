@@ -163,11 +163,8 @@ async function getLedger(req, res) {
     if (firstEntryDate) {
       const [oldCredits, oldDebits] = await Promise.all([
         PaymentModel.find({
-          createdAt: {
-            $lt: firstEntryDate,
-          },
           ...rest,
-          ...dateFilter,
+          createdAt: { $lt: firstEntryDate },
           paymentStatus: "Paid",
         })
           .populate({
@@ -180,9 +177,8 @@ async function getLedger(req, res) {
           .lean(),
 
         ExpenseModel.find({
-          createdAt: { $lt: firstEntryDate },
           ...rest,
-          ...dateFilter,
+          createdAt: { $lt: firstEntryDate },
           expenseStatus: "Approved",
         })
           .populate({
