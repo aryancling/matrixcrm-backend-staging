@@ -167,7 +167,8 @@ async function getLedger(req, res) {
             $lt: firstEntryDate,
           },
           ...rest,
-          paymentStatus: "Approved",
+          ...dateFilter,
+          paymentStatus: "Paid",
         })
           .populate({
             path: "serviceRequestId",
@@ -177,10 +178,12 @@ async function getLedger(req, res) {
             path: "user_id",
           })
           .lean(),
+
         ExpenseModel.find({
           createdAt: { $lt: firstEntryDate },
           ...rest,
-          expenseStatus: "Paid",
+          ...dateFilter,
+          expenseStatus: "Approved",
         })
           .populate({
             path: "serviceRequestId",
