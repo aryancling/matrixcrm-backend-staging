@@ -234,7 +234,7 @@ const sendEmail = async ({
       service: "gmail",
       auth: {
         user: "mi2005.delhi@gmail.com",
-        pass: "pwcdavpfutinjdjb",
+        pass: "ynayahwumnvdzxce",
       },
     });
     // var transporter = nodemailer.createTransport({
