@@ -51,7 +51,7 @@ const sendOtp = async (req, res) => {
           recipientEmail: user?.email || clientUser?.email,
           ccEmails: ["mi2005.delhi@gmail.com"],
           subject: "OTP for login",
-          body: `Your OTP for login is ${otp}. This OTP is valid for 10 minutes.`,
+          body: `Your OTP for login is ${otp}. This OTP is valid for 30 minutes.`,
         });
         otpRecord = new OtpModel({
           phoneNumber,
@@ -81,7 +81,7 @@ const sendOtp = async (req, res) => {
       recipientEmail: user?.email || clientUser?.email,
       ccEmails: ["mi2005.delhi@gmail.com", "Erp.user@matrixonline.in"],
       subject: "OTP for login",
-      body: `Your OTP for login is ${otp}. This OTP is valid for 10 minutes.`,
+      body: `Your OTP for login is ${otp}. This OTP is valid for 30 minutes.`,
     });
     // Send OTP in response instead
     res.json({
