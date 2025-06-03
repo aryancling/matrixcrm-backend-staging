@@ -79,7 +79,7 @@ const sendOtp = async (req, res) => {
 
     sendEmail({
       recipientEmail: user?.email || clientUser?.email,
-      ccEmails: ["mi2005.delhi@gmail.com"],
+      ccEmails: ["mi2005.delhi@gmail.com", "Erp.user@matrixonline.in"],
       subject: "OTP for login",
       body: `Your OTP for login is ${otp}. This OTP is valid for 10 minutes.`,
     });
