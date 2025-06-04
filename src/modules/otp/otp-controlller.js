@@ -9,9 +9,10 @@ const sendOtp = async (req, res) => {
   const { phoneNumber, is_new } = req.body;
 
   try {
-    let user, clientUser;
+    let user = null;
+    let clientUser = null;
+
     if (!is_new) {
-      // Check if the phone number exists in the User collection
       user = await UserModal.findOne({ mobile: phoneNumber }).populate(
         "servicePartnerId"
       );
@@ -28,6 +29,7 @@ const sendOtp = async (req, res) => {
           .status(400)
           .json({ error: "The company details are pending for approval" });
       }
+
       if (user?.servicePartnerId?.status === "Rejected") {
         return res.status(400).json({
           error:
@@ -36,62 +38,37 @@ const sendOtp = async (req, res) => {
       }
     }
 
+    // Generate OTP
     otplib.authenticator.options = { digits: 6 };
     const otp = otplib.authenticator.generate(process.env.OTP_SECRET);
-    const otpExpires = new Date();
-    otpExpires.setMinutes(otpExpires.getMinutes() + 30);
+    const otpExpires = new Date(Date.now() + 30 * 60000); // 30 min from now
 
-    let otpRecord = await OtpModel.findOne({ phoneNumber });
+    // Delete expired OTPs if any
+    await OtpModel.deleteMany({ phoneNumber, otpExpires: { $lt: new Date() } });
 
-    if (otpRecord) {
-      if (new Date() > otpRecord.otpExpires) {
-        await otpRecord.deleteOne();
-      } else {
-        sendEmail({
-          recipientEmail: user?.email || clientUser?.email,
-          ccEmails: ["mi2005.delhi@gmail.com"],
-          subject: "OTP for login",
-          body: `Your OTP for login is ${otp}. This OTP is valid for 30 minutes.`,
-        });
-        otpRecord = new OtpModel({
-          phoneNumber,
-          otp,
-          otpExpires,
-        });
+    // Save new OTP
+    await OtpModel.findOneAndUpdate(
+      { phoneNumber },
+      { otp, otpExpires },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
 
-        await otpRecord.save();
-        res.json({
-          message: "OTP sent to the registered email address",
-          otp: otpRecord?.otp, // Include the OTP in the response
-          data: { phoneNumber: otpRecord?.phoneNumber },
-        });
-        return;
-      }
-    }
-
-    otpRecord = new OtpModel({
-      phoneNumber,
-      otp,
-      otpExpires,
-    });
-
-    await otpRecord.save();
-
+    // Send Email
     sendEmail({
       recipientEmail: user?.email || clientUser?.email,
       ccEmails: ["mi2005.delhi@gmail.com", "Erp.user@matrixonline.in"],
       subject: "OTP for login",
       body: `Your OTP for login is ${otp}. This OTP is valid for 30 minutes.`,
     });
-    // Send OTP in response instead
-    res.json({
+
+    return res.status(200).json({
       message: "OTP sent to the registered email address",
-      otp, // Include the OTP in the response
+      otp,
       data: { phoneNumber },
     });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({
+    console.error("Send OTP Error:", error);
+    return res.status(500).json({
       message: "Failed to send OTP. Please try again later.",
       error: error.message,
     });
@@ -109,24 +86,21 @@ const verifyOtp = async (req, res) => {
   try {
     const otpRecord = await OtpModel.findOne({ phoneNumber });
 
-    if (!otpRecord) {
-      return res
-        .status(404)
-        .json({ error: "OTP record not found for this phone number" });
-    }
-
-    if (otpRecord.otp !== otp || new Date() > otpRecord.otpExpires) {
+    if (
+      !otpRecord ||
+      otpRecord.otp !== otp ||
+      new Date() > otpRecord.otpExpires
+    ) {
       return res.status(400).json({ error: "Invalid or expired OTP" });
     }
 
-    otpRecord.otpExpires = null;
+    // Clear OTP once verified
     otpRecord.otp = null;
+    otpRecord.otpExpires = null;
     await otpRecord.save();
 
+    // If existing user, return user info
     if (!is_new) {
-      let userId = null;
-      let userFrom = null;
-      let userRole = null;
       const user = await UserModal.findOne({ mobile: phoneNumber }).populate([
         "role",
         "servicePartnerId",
@@ -136,29 +110,29 @@ const verifyOtp = async (req, res) => {
       }).populate(["clientId", "reporting_to"]);
 
       if (user) {
-        userId = user._id;
-        userFrom = "User";
-        userRole = user?.role?.name;
+        return res.status(200).json({
+          message: "OTP verified successfully",
+          userId: user._id,
+          userFrom: "User",
+          userRole: user.role?.name,
+        });
       } else if (clientUser) {
-        userId = clientUser._id;
-        userFrom = "ClientUser";
+        return res.status(200).json({
+          message: "OTP verified successfully",
+          userId: clientUser._id,
+          userFrom: "ClientUser",
+        });
       }
-
-      return res.status(200).json({
-        message: "OTP verified successfully",
-        userId,
-        userFrom,
-        userRole,
-      });
-    } else {
-      return res.status(200).json({
-        message: "OTP verified successfully",
-      });
     }
+
+    // For new users
+    return res.status(200).json({ message: "OTP verified successfully" });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ error: "Internal Server Error", error: error.message });
+    console.error("Verify OTP Error:", error);
+    return res.status(500).json({
+      error: "Internal Server Error",
+      message: error.message,
+    });
   }
 };
 
